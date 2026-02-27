@@ -3,8 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WTAF — The Feed</title>
+  <title>We're so f-cked</title>
   <style>
+    @font-face {
+      font-family: 'GT Super';
+      src: url('/fonts/GT-Super-Web/GT-Super-Display-Light.woff') format('woff');
+      font-weight: 300;
+      font-style: normal;
+      font-display: swap;
+    }
+
     @font-face {
       font-family: 'GT Super';
       src: url('/fonts/GT-Super-Web/GT-Super-Display-Regular.woff') format('woff');
@@ -15,9 +23,49 @@
 
     @font-face {
       font-family: 'GT Super';
+      src: url('/fonts/GT-Super-Web/GT-Super-Display-Medium.woff') format('woff');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'GT Super';
       src: url('/fonts/GT-Super-Web/GT-Super-Display-Bold.woff') format('woff');
       font-weight: 700;
       font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'GT Super';
+      src: url('/fonts/GT-Super-Web/GT-Super-Display-Light-Italic.woff') format('woff');
+      font-weight: 300;
+      font-style: italic;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'GT Super';
+      src: url('/fonts/GT-Super-Web/GT-Super-Display-Regular-Italic.woff') format('woff');
+      font-weight: 400;
+      font-style: italic;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'GT Super';
+      src: url('/fonts/GT-Super-Web/GT-Super-Display-Medium-Italic.woff') format('woff');
+      font-weight: 500;
+      font-style: italic;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'GT Super';
+      src: url('/fonts/GT-Super-Web/GT-Super-Display-Bold-Italic.woff') format('woff');
+      font-weight: 700;
+      font-style: italic;
       font-display: swap;
     }
 
@@ -112,11 +160,17 @@
 
     /* ── HEADER ── */
     header {
-      border-bottom: 1px solid var(--border);
-      padding: 1.5rem 2rem;
+      padding: 1rem 2rem 0.4rem;
       display: flex;
-      align-items: baseline;
+      align-items: flex-start;
       gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .header-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
       flex-wrap: wrap;
     }
 
@@ -126,9 +180,10 @@
       letter-spacing: -0.05em;
       font-family: 'GT Super', sans-serif;
       text-transform: titlecase;
+      font-style: italic;
     }
 
-    .site-title span { color: var(--accent); }
+    .site-title span { color: var(--text); }
 
     .site-subtitle {
       font-size: 0.85rem;
@@ -144,79 +199,91 @@
       text-align: right;
     }
 
-    #refresh-btn {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 0.25rem 0.75rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      font-family: 'Verlag', sans-serif;
-      margin-top: 0.25rem;
-      transition: border-color 0.15s, color 0.15s;
-    }
-
-    #refresh-btn:hover { border-color: var(--text); color: var(--text); }
-    #refresh-btn:disabled { opacity: 0.4; cursor: default; }
-
     #theme-toggle {
       background: none;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 0.35rem 0.6rem;
-      font-size: 0.8rem;
+      border: none;
+      border-radius: 50%;
+      padding: 0.5rem;
       cursor: pointer;
       color: var(--text);
-      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s, color 0.2s;
     }
-    #theme-toggle:hover { border-color: var(--text); }
+    #theme-toggle:hover {
+      transform: translateY(-2px);
+      color: var(--accent);
+    }
+    #theme-toggle svg { width: 1.15rem; height: 1.15rem; }
 
     /* ── TOPIC FILTER ── */
     .filter-row {
-      padding: 0.75rem 2rem;
+      padding: 0.4rem 2rem 0.75rem;
       border-bottom: 1px solid var(--border);
       display: flex;
-      gap: 0.5rem;
+      gap: 1.5rem;
       flex-wrap: wrap;
       align-items: center;
     }
 
-    .filter-label {
-      font-size: 0.72rem;
-      font-family: 'Verlag', sans-serif;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-right: 0.25rem;
-      white-space: nowrap;
-    }
-
     .filter-btn {
+      --topic-color: var(--text);
+      position: relative;
       background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 0.25rem 0.8rem;
-      border-radius: 999px;
+      border: none;
+      color: var(--text);
+      padding: 0.35rem 0 0.35rem 1.5rem;
       cursor: pointer;
-      font-size: 0.78rem;
-      font-family: 'Verlag', sans-serif;
-      transition: all 0.15s;
+      font-size: 1.5rem;
+      font-family: 'GT Super', 'Georgia', serif;
+      font-weight: 700;
+      font-style: normal;
+      transition: font-style 0.15s;
       white-space: nowrap;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+      text-decoration: none;
     }
+    .filter-btn::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--topic-color);
+      font-weight: 700;
+    }
+    /* Invisible italic copy reserves width so hover doesn’t shift layout */
+    .filter-btn .filter-btn-width {
+      display: inline-block;
+      font-style: italic;
+      visibility: hidden;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .filter-btn .filter-btn-text {
+      position: absolute;
+      left: 1.5rem;
+      top: 0.35rem;
+      font-style: normal;
+      transition: font-style 0.15s, box-shadow 0.15s;
+      box-shadow: 0 2px 0 0 transparent;
+    }
+    .filter-btn:hover .filter-btn-text {
+      font-style: italic;
+      box-shadow: 0 3px 0 0 var(--topic-color);
+    }
+    .filter-btn:hover::before { font-style: italic; }
+    .filter-btn.active { color: var(--topic-color); }
+    .filter-btn.active .filter-btn-text { box-shadow: 0 3px 0 0 var(--topic-color); }
 
-    .filter-btn:hover { border-color: var(--text); color: var(--text); }
-    .filter-btn.active { background: var(--text); border-color: var(--text); color: var(--bg); font-weight: 600; }
+    .filter-btn + .filter-btn::before { content: "•"; margin-right: 1rem; margin-left: 0; }
+    .filter-btn:first-of-type::before { content: "•"; margin-right: 1rem; margin-left: 0; }
 
-    .filter-btn[data-topic="tech"].active     { background: #22d3ee; border-color: #22d3ee; color: #000; }
-    .filter-btn[data-topic="politics"].active { background: #f87171; border-color: #f87171; color: #000; }
-    .filter-btn[data-topic="nyc"].active      { background: #2dd4bf; border-color: #2dd4bf; color: #000; }
-    .filter-btn[data-topic="culture"].active  { background: #fb923c; border-color: #fb923c; color: #000; }
-    .filter-btn[data-topic="media"].active    { background: #a78bfa; border-color: #a78bfa; color: #000; }
-    .filter-btn[data-topic="labor"].active    { background: #fbbf24; border-color: #fbbf24; color: #000; }
-    .filter-btn[data-topic="science"].active  { background: #86efac; border-color: #86efac; color: #000; }
+    .filter-btn[data-topic="tech"]     { --topic-color: #22d3ee; }
+    .filter-btn[data-topic="politics"] { --topic-color: #f87171; }
+    .filter-btn[data-topic="nyc"]      { --topic-color: #2dd4bf; }
+    .filter-btn[data-topic="culture"] { --topic-color: #fb923c; }
+    .filter-btn[data-topic="media"]    { --topic-color: #a78bfa; }
+    .filter-btn[data-topic="labor"]    { --topic-color: #fbbf24; }
+    .filter-btn[data-topic="science"]  { --topic-color: #86efac; }
 
     #result-count {
       margin-left: auto;
@@ -258,7 +325,7 @@
     }
 
     .feed-item:last-child { border-bottom: none; }
-    .feed-item:hover { background: floralwhite; }
+    .feed-item:hover { background: linen; }
 
     [data-theme="dark"] .feed-item:hover { background: var(--surface); }
 
@@ -277,15 +344,6 @@
     }
 
     .feed-item-text { flex: 1; min-width: 0; }
-
-    .item-image {
-      flex-shrink: 0;
-      width: 140px;
-      height: 90px;
-      object-fit: cover;
-      border-radius: 4px;
-      display: block;
-    }
 
     .item-meta {
       display: flex;
@@ -465,35 +523,31 @@
       header, .filter-row { padding: 0.75rem 1rem; }
       .feed-item { padding: 1rem; }
       .item-title { font-size: 3rem; }
-      .item-image { width: 100px; height: 65px; }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <div class="site-title"><span>We're Fucked!</span></div>
-    <div class="site-subtitle">Your weird little flotilla, aggregated.</div>
+  <div class="header-title-row">
+    <div class="site-title"><span>Good news / bad times</span></div>
+    <button id="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
   </div>
   <div class="header-meta">
     <div id="last-updated"></div>
-    <button id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark</button>
-    <button id="refresh-btn" onclick="loadFeed(true)">Refresh</button>
   </div>
 </header>
 
 <!-- Topic filter -->
 <div class="filter-row">
-  <span class="filter-label">Topic:</span>
-  <button class="filter-btn active" data-topic="all">All</button>
-  <button class="filter-btn" data-topic="tech">Tech</button>
-  <button class="filter-btn" data-topic="politics">Politics</button>
-  <button class="filter-btn" data-topic="nyc">NYC</button>
-  <button class="filter-btn" data-topic="culture">Culture</button>
-  <button class="filter-btn" data-topic="media">Media</button>
-  <button class="filter-btn" data-topic="labor">Labor</button>
-  <button class="filter-btn" data-topic="science">Science</button>
+  <button class="filter-btn active" data-topic="all"><span class="filter-btn-width" aria-hidden="true">All</span><span class="filter-btn-text">All</span></button>
+  <button class="filter-btn" data-topic="tech"><span class="filter-btn-width" aria-hidden="true">Tech</span><span class="filter-btn-text">Tech</span></button>
+  <button class="filter-btn" data-topic="politics"><span class="filter-btn-width" aria-hidden="true">Politics</span><span class="filter-btn-text">Politics</span></button>
+  <button class="filter-btn" data-topic="nyc"><span class="filter-btn-width" aria-hidden="true">NYC</span><span class="filter-btn-text">NYC</span></button>
+  <button class="filter-btn" data-topic="culture"><span class="filter-btn-width" aria-hidden="true">Culture</span><span class="filter-btn-text">Culture</span></button>
+  <button class="filter-btn" data-topic="media"><span class="filter-btn-width" aria-hidden="true">Media</span><span class="filter-btn-text">Media</span></button>
+  <button class="filter-btn" data-topic="labor"><span class="filter-btn-width" aria-hidden="true">Labor</span><span class="filter-btn-text">Labor</span></button>
+  <button class="filter-btn" data-topic="science"><span class="filter-btn-width" aria-hidden="true">Science</span><span class="filter-btn-text">Science</span></button>
   <span id="result-count"></span>
 </div>
 
@@ -548,9 +602,13 @@
     if (saved === 'dark' || saved === 'light') return saved;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
+  const sunIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+  const moonIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : '');
-    document.getElementById('theme-toggle').textContent = theme === 'dark' ? 'Light' : 'Dark';
+    const toggle = document.getElementById('theme-toggle');
+    toggle.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+    toggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
     localStorage.setItem(THEME_KEY, theme);
   }
   applyTheme(getTheme());
@@ -602,12 +660,9 @@
     }
     const loading = document.getElementById('loading');
     const errMsg  = document.getElementById('error-msg');
-    const btn     = document.getElementById('refresh-btn');
 
     loading.style.display = 'block';
     errMsg.style.display  = 'none';
-    btn.disabled = true;
-    btn.textContent = 'Loading…';
 
     try {
       const res  = await fetch(force ? '/api/feeds?bust=' + Date.now() : '/api/feeds');
@@ -632,8 +687,6 @@
       errMsg.textContent   = 'Failed to load feeds. Is the server running?';
     } finally {
       loading.style.display = 'none';
-      btn.disabled    = false;
-      btn.textContent = 'Refresh';
     }
   }
 
@@ -643,10 +696,6 @@
     const topicTags  = itemTopics.map(t =>
       `<span class="topic-tag topic-${t}" onclick="filterByTopic('${t}')" title="Filter to ${TOPICS[t].label}">${TOPICS[t].label}</span>`
     ).join('');
-
-    const imageHtml = item.image
-      ? `<img class="item-image" src="${escHtml(item.image)}" alt="" loading="lazy" onerror="this.remove()">`
-      : '';
 
     return `
       <article class="feed-item">
@@ -667,7 +716,6 @@
             </div>
             ${item.snippet ? `<div class="item-snippet">${escHtml(item.snippet)}</div>` : ''}
           </div>
-          ${imageHtml}
         </div>
       </article>
     `;
