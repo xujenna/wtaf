@@ -191,14 +191,6 @@
       font-family: 'Verlag', sans-serif;
     }
 
-    .header-meta {
-      margin-left: auto;
-      font-size: 0.8rem;
-      color: var(--muted);
-      font-family: 'Verlag', sans-serif;
-      text-align: right;
-    }
-
     #theme-toggle {
       background: none;
       border: none;
@@ -285,11 +277,17 @@
     .filter-btn[data-topic="labor"]    { --topic-color: #fbbf24; }
     .filter-btn[data-topic="science"]  { --topic-color: #86efac; }
 
-    #result-count {
+    .filter-meta {
       margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       font-size: 0.78rem;
       color: var(--muted);
       font-family: 'Verlag', sans-serif;
+    }
+    .filter-meta #result-count:not(:empty) + #last-updated:not(:empty)::before {
+      content: " · ";
     }
 
     /* ── LAYOUT ── */
@@ -533,9 +531,6 @@
     <div class="site-title"><span>Good news / bad times</span></div>
     <button id="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
   </div>
-  <div class="header-meta">
-    <div id="last-updated"></div>
-  </div>
 </header>
 
 <!-- Topic filter -->
@@ -548,7 +543,10 @@
   <button class="filter-btn" data-topic="media"><span class="filter-btn-width" aria-hidden="true">Media</span><span class="filter-btn-text">Media</span></button>
   <button class="filter-btn" data-topic="labor"><span class="filter-btn-width" aria-hidden="true">Labor</span><span class="filter-btn-text">Labor</span></button>
   <button class="filter-btn" data-topic="science"><span class="filter-btn-width" aria-hidden="true">Science</span><span class="filter-btn-text">Science</span></button>
-  <span id="result-count"></span>
+  <span class="filter-meta">
+    <span id="result-count"></span>
+    <span id="last-updated"></span>
+  </span>
 </div>
 
 <main>
