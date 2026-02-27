@@ -21,7 +21,7 @@ const SOURCES = [
   {
     name: 'Platformer',
     url: 'https://www.platformer.news',
-    feed: 'https://www.platformer.news/feed',
+    feed: 'https://www.platformer.news/feed/',
     description: "Casey Newton's essential tech newsletter",
     category: 'newsletter',
   },
@@ -58,6 +58,13 @@ const SOURCES = [
     url: 'https://www.semafor.com/newsletters/status',
     feed: 'https://www.semafor.com/rss/status.xml',
     description: "Oliver Darcy's unmissable media reporting",
+    category: 'newsletter',
+  },
+  {
+    name: 'Garbage Day',
+    url: 'https://www.garbageday.email',
+    feed: 'https://rss.beehiiv.com/feeds/owMwaGYU36.xml',
+    description: "Ryan Broderick on internet culture and the web",
     category: 'newsletter',
   },
   {
@@ -174,8 +181,8 @@ const SOURCES = [
   },
   {
     name: 'The Present Age',
-    url: 'https://www.thepresentage.com',
-    feed: 'https://www.thepresentage.com/feed',
+    url: 'https://www.readtpa.com',
+    feed: 'https://www.readtpa.com/feed',
     description: 'Parker Molloy on news and politics',
     category: 'newsletter',
   },
