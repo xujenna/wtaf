@@ -6,7 +6,33 @@ const app = express();
 const parser = new Parser({
   timeout: 8000,
   headers: { 'User-Agent': 'WTAF-Feed/1.0 (RSS Aggregator)' },
+  customFields: {
+    item: [
+      ['media:content',   'mediaContent'],
+      ['media:thumbnail', 'mediaThumbnail'],
+    ],
+  },
 });
+
+function extractImage(item) {
+  const mc = item.mediaContent;
+  if (mc) {
+    const url = Array.isArray(mc) ? mc[0]?.$?.url : mc.$?.url;
+    if (url) return url;
+  }
+  const mt = item.mediaThumbnail;
+  if (mt) {
+    const url = Array.isArray(mt) ? mt[0]?.$?.url : mt.$?.url;
+    if (url) return url;
+  }
+  if (item.enclosure?.url && item.enclosure?.type?.startsWith('image/')) {
+    return item.enclosure.url;
+  }
+  const html = item['content:encoded'] || item.content || item.summary || '';
+  const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (match) return match[1];
+  return null;
+}
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -257,7 +283,8 @@ app.get('/api/feeds', async (req, res) => {
         snippet: (item.contentSnippet || item.summary || '')
           .replace(/\s+/g, ' ')
           .trim()
-          .slice(0, 450) || null,
+          .slice(0, 800) || null,
+        image: extractImage(item),
       }));
     })
   );

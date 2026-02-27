@@ -5,6 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WTAF — The Feed</title>
   <style>
+    @font-face {
+      font-family: 'GT Super';
+      src: url('/fonts/GT-Super-Web/GT-Super-Display-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'GT Super';
+      src: url('/fonts/GT-Super-Web/GT-Super-Display-Bold.woff') format('woff');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'GT Super Text';
+      src: url('/fonts/GT-Super-Web/GT-Super-Text-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'GT Super Text';
+      src: url('/fonts/GT-Super-Web/GT-Super-Text-Regular-Italic.woff') format('woff');
+      font-weight: 400;
+      font-style: italic;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'GT Super Text';
+      src: url('/fonts/GT-Super-Web/GT-Super-Text-Medium.woff') format('woff');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'GT Super Text';
+      src: url('/fonts/GT-Super-Web/GT-Super-Text-Bold.woff') format('woff');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -25,7 +73,7 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'Georgia', serif;
+      font-family: 'GT Super Text', 'Georgia', serif;
       line-height: 1.6;
       min-height: 100vh;
     }
@@ -83,7 +131,7 @@
     #refresh-btn:hover { border-color: var(--text); color: var(--text); }
     #refresh-btn:disabled { opacity: 0.4; cursor: default; }
 
-    /* ── FILTER ROWS ── */
+    /* ── TOPIC FILTER ── */
     .filter-row {
       padding: 0.75rem 2rem;
       border-bottom: 1px solid var(--border);
@@ -117,15 +165,8 @@
     }
 
     .filter-btn:hover { border-color: var(--text); color: var(--text); }
-
-    /* Category filter active states */
     .filter-btn.active { background: var(--text); border-color: var(--text); color: var(--bg); font-weight: 600; }
-    .filter-btn[data-cat="newsletter"].active { background: var(--newsletter); border-color: var(--newsletter); color: #000; }
-    .filter-btn[data-cat="newsroom"].active   { background: var(--newsroom);   border-color: var(--newsroom);   color: #000; }
-    .filter-btn[data-cat="podcast"].active    { background: var(--podcast);    border-color: var(--podcast);    color: #000; }
-    .filter-btn[data-cat="video"].active      { background: var(--video);      border-color: var(--video);      color: #000; }
 
-    /* Topic filter active states — matched by data-topic */
     .filter-btn[data-topic="tech"].active     { background: #22d3ee; border-color: #22d3ee; color: #000; }
     .filter-btn[data-topic="politics"].active { background: #f87171; border-color: #f87171; color: #000; }
     .filter-btn[data-topic="nyc"].active      { background: #2dd4bf; border-color: #2dd4bf; color: #000; }
@@ -188,19 +229,52 @@
     /* ── FEED ── */
     #feed { border-right: 1px solid var(--border); }
 
+    /* ── CATEGORY SECTIONS ── */
+    .category-section { border-bottom: 2px solid var(--border); }
+
+    .category-heading {
+      font-size: 0.68rem;
+      font-family: sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      padding: 1rem 2rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── FEED ITEMS ── */
     .feed-item {
-      padding: 1.25rem 2rem;
+      padding: 1.5rem 2rem;
       border-bottom: 1px solid var(--border);
       transition: background 0.1s;
     }
 
+    .feed-item:last-child { border-bottom: none; }
     .feed-item:hover { background: var(--surface); }
+
+    .feed-item-inner {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+    }
+
+    .feed-item-text { flex: 1; min-width: 0; }
+
+    .item-image {
+      flex-shrink: 0;
+      width: 140px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 4px;
+      display: block;
+    }
 
     .item-meta {
       display: flex;
       align-items: center;
       gap: 0.4rem;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.5rem;
       flex-wrap: wrap;
     }
 
@@ -251,20 +325,21 @@
     }
 
     .item-title {
-      font-size: 1.05rem;
-      font-weight: 600;
-      line-height: 1.4;
-      margin-bottom: 0.4rem;
+      font-size: 1.45rem;
+      font-weight: 700;
+      font-family: 'GT Super', 'Georgia', serif;
+      line-height: 1.25;
+      margin-bottom: 0.5rem;
     }
 
     .item-title a:hover { color: var(--accent); text-decoration: none; }
 
     .item-snippet {
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.65;
       display: -webkit-box;
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 5;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -368,6 +443,8 @@
       header, .filter-row, .search-row { padding: 0.75rem 1rem; }
       .feed-item { padding: 1rem; }
       #search-input { width: 100%; }
+      .item-title { font-size: 1.2rem; }
+      .item-image { width: 100px; height: 65px; }
     }
   </style>
 </head>
@@ -383,16 +460,6 @@
     <button id="refresh-btn" onclick="loadFeed(true)">Refresh</button>
   </div>
 </header>
-
-<!-- Category filter -->
-<div class="filter-row">
-  <span class="filter-label">Type:</span>
-  <button class="filter-btn active" data-cat="all">All</button>
-  <button class="filter-btn" data-cat="newsletter">Newsletters</button>
-  <button class="filter-btn" data-cat="newsroom">Newsrooms</button>
-  <button class="filter-btn" data-cat="podcast">Podcasts</button>
-  <button class="filter-btn" data-cat="video">Video</button>
-</div>
 
 <!-- Topic filter -->
 <div class="filter-row">
@@ -429,7 +496,6 @@
 </main>
 
 <script>
-  // ── Topic definitions
   const TOPICS = {
     tech:     { label: 'Tech',     keywords: ['ai', 'a.i.', 'artificial intelligence', 'software', ' app ', 'apple', 'google', 'meta ', 'twitter', 'tiktok', 'algorithm', 'data', 'privacy', 'hack', 'cyber', 'startup', 'crypto', 'bitcoin', 'blockchain', 'openai', 'chatgpt', 'musk', 'silicon', 'internet', 'digital', 'platform', 'social media', 'youtube', 'instagram', 'facebook', 'microsoft', 'amazon', 'surveillance', 'big tech', 'antitrust', 'tech ', 'technology', 'robot', 'automation', 'section 230', 'deepfake', 'sam altman', 'anthropic'] },
     politics: { label: 'Politics', keywords: ['trump', 'biden', 'congress', 'senate', 'democrat', 'republican', 'election', 'government', 'federal', 'administration', 'president', 'white house', 'supreme court', 'doj', 'fbi', 'cia', 'epstein', 'maga', 'gop', 'legislation', 'tariff', 'immigration', 'border', 'ukraine', 'russia', 'israel', 'gaza', 'nato', 'doge', 'cabinet', 'political', 'policy', 'vote', 'ballot'] },
@@ -447,6 +513,9 @@
     video:      'var(--video)',
   };
 
+  const CAT_ORDER  = ['newsroom', 'newsletter', 'podcast', 'video'];
+  const CAT_LABELS = { newsroom: 'Newsrooms', newsletter: 'Newsletters', podcast: 'Podcasts', video: 'Video' };
+
   function getTopics(item) {
     const text = ((item.title || '') + ' ' + (item.snippet || '')).toLowerCase();
     return Object.keys(TOPICS).filter(key =>
@@ -454,12 +523,11 @@
     );
   }
 
-  let allItems = [];
+  let allItems   = [];
   let allSources = [];
-  let activeCategory = 'all';
-  let activeTopic = 'all';
+  let activeTopic  = 'all';
   let activeSource = '';
-  let searchQuery = '';
+  let searchQuery  = '';
 
   // ── Sidebar + source select
   async function loadSources() {
@@ -475,15 +543,12 @@
 
   function buildSidebar() {
     const section = document.getElementById('sidebar-sources');
-    const cats = ['newsroom', 'newsletter', 'podcast', 'video'];
-    const labels = { newsroom: 'Newsrooms', newsletter: 'Newsletters', podcast: 'Podcasts', video: 'Video' };
-
-    section.innerHTML = cats.map(cat => {
+    section.innerHTML = CAT_ORDER.map(cat => {
       const sources = allSources.filter(s => s.category === cat);
       if (!sources.length) return '';
       return `
         <div>
-          <div class="sidebar-heading">${labels[cat]}</div>
+          <div class="sidebar-heading">${CAT_LABELS[cat]}</div>
           <ul class="source-list">
             ${sources.map(s => `
               <li class="source-list-item">
@@ -503,14 +568,11 @@
   function buildSourceSelect() {
     const sel = document.getElementById('source-select');
     const feedSources = allSources.filter(s => s.hasRss);
-    const cats = ['newsroom', 'newsletter', 'podcast'];
-    const labels = { newsroom: 'Newsrooms', newsletter: 'Newsletters', podcast: 'Podcasts' };
-
-    cats.forEach(cat => {
+    CAT_ORDER.forEach(cat => {
       const sources = feedSources.filter(s => s.category === cat);
       if (!sources.length) return;
       const og = document.createElement('optgroup');
-      og.label = labels[cat];
+      og.label = CAT_LABELS[cat] || cat;
       sources.forEach(s => {
         const opt = document.createElement('option');
         opt.value = s.name;
@@ -559,17 +621,50 @@
       errMsg.textContent   = 'Failed to load feeds. Is the server running?';
     } finally {
       loading.style.display = 'none';
-      btn.disabled   = false;
+      btn.disabled    = false;
       btn.textContent = 'Refresh';
     }
   }
 
   // ── Render
+  function renderItem(item) {
+    const itemTopics = getTopics(item);
+    const topicTags  = itemTopics.map(t =>
+      `<span class="topic-tag topic-${t}" onclick="filterByTopic('${t}')" title="Filter to ${TOPICS[t].label}">${TOPICS[t].label}</span>`
+    ).join('');
+
+    const imageHtml = item.image
+      ? `<img class="item-image" src="${escHtml(item.image)}" alt="" loading="lazy" onerror="this.remove()">`
+      : '';
+
+    return `
+      <article class="feed-item">
+        <div class="feed-item-inner">
+          <div class="feed-item-text">
+            <div class="item-meta">
+              <span
+                class="source-badge cat-${item.category}"
+                onclick="filterBySource('${item.source.replace(/'/g, "\\'")}')"
+                title="Filter to ${item.source}"
+              >${item.source}</span>
+              ${topicTags}
+              ${item.date ? `<span class="item-date">${formatDate(item.date)}</span>` : ''}
+            </div>
+            <div class="item-title">
+              <a href="${item.link}" target="_blank" rel="noopener">${escHtml(item.title)}</a>
+            </div>
+            ${item.snippet ? `<div class="item-snippet">${escHtml(item.snippet)}</div>` : ''}
+          </div>
+          ${imageHtml}
+        </div>
+      </article>
+    `;
+  }
+
   function renderItems() {
     const q = searchQuery.toLowerCase();
 
     const filtered = allItems.filter(item => {
-      if (activeCategory !== 'all' && item.category !== activeCategory) return false;
       if (activeSource && item.source !== activeSource) return false;
       if (activeTopic !== 'all' && !getTopics(item).includes(activeTopic)) return false;
       if (q && !item.title.toLowerCase().includes(q) && !(item.snippet || '').toLowerCase().includes(q)) return false;
@@ -587,30 +682,22 @@
       return;
     }
 
-    container.innerHTML = filtered.map(item => {
-      const itemTopics = getTopics(item);
-      const topicTags = itemTopics.map(t =>
-        `<span class="topic-tag topic-${t}" onclick="filterByTopic('${t}')" title="Filter to ${TOPICS[t].label}">${TOPICS[t].label}</span>`
-      ).join('');
+    // Group by category, sorted by recency within each group
+    const grouped = {};
+    CAT_ORDER.forEach(cat => { grouped[cat] = []; });
+    filtered.forEach(item => {
+      if (grouped[item.category]) grouped[item.category].push(item);
+    });
 
-      return `
-        <article class="feed-item">
-          <div class="item-meta">
-            <span
-              class="source-badge cat-${item.category}"
-              onclick="filterBySource('${item.source.replace(/'/g, "\\'")}')"
-              title="Filter to ${item.source}"
-            >${item.source}</span>
-            ${topicTags}
-            ${item.date ? `<span class="item-date">${formatDate(item.date)}</span>` : ''}
-          </div>
-          <div class="item-title">
-            <a href="${item.link}" target="_blank" rel="noopener">${escHtml(item.title)}</a>
-          </div>
-          ${item.snippet ? `<div class="item-snippet">${escHtml(item.snippet)}</div>` : ''}
-        </article>
-      `;
-    }).join('');
+    container.innerHTML = CAT_ORDER
+      .filter(cat => grouped[cat].length > 0)
+      .map(cat => `
+        <div class="category-section">
+          <h2 class="category-heading">${CAT_LABELS[cat]}</h2>
+          ${grouped[cat].map(renderItem).join('')}
+        </div>
+      `)
+      .join('');
   }
 
   // ── Filter handlers
@@ -627,17 +714,6 @@
     activeTopic = topic;
     renderItems();
   }
-
-  document.querySelectorAll('.filter-btn[data-cat]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn[data-cat]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeCategory = btn.dataset.cat;
-      document.getElementById('source-select').value = '';
-      activeSource = '';
-      renderItems();
-    });
-  });
 
   document.querySelectorAll('.filter-btn[data-topic]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -667,14 +743,14 @@
     if (!iso) return '';
     const d = new Date(iso);
     if (isNaN(d)) return '';
-    const diff = Date.now() - d;
+    const diff  = Date.now() - d;
     const mins  = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days  = Math.floor(diff / 86400000);
-    if (mins  <  1)  return 'just now';
-    if (mins  < 60)  return `${mins}m ago`;
-    if (hours < 24)  return `${hours}h ago`;
-    if (days  <  7)  return `${days}d ago`;
+    if (mins  <  1) return 'just now';
+    if (mins  < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days  <  7) return `${days}d ago`;
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 
