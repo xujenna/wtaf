@@ -53,11 +53,40 @@
       font-display: swap;
     }
 
+    @font-face {
+      font-family: 'Verlag';
+      src: url('/fonts/Verlag/Verlag-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Verlag';
+      src: url('/fonts/Verlag/Verlag-Bold.woff') format('woff');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0d0d0d;
-      --surface: #1a1a1a;
+      --bg: antiquewhite;
+      --surface: #e0dcd4;
+      --border: #c9c4b8;
+      --text: #2c2424;
+      --muted: #666;
+      --accent: #ff3c00;
+      --newsletter: #4ade80;
+      --newsroom: #60a5fa;
+      --podcast: #f59e0b;
+      --video: #c084fc;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0c0923;
+      --surface: #0b0733;
       --border: #2a2a2a;
       --text: #e8e8e8;
       --muted: #888;
@@ -92,11 +121,11 @@
     }
 
     .site-title {
-      font-size: 1.75rem;
+      font-size: 8rem;
       font-weight: 700;
-      letter-spacing: -0.02em;
-      font-family: 'Arial Black', sans-serif;
-      text-transform: uppercase;
+      letter-spacing: -0.05em;
+      font-family: 'GT Super', sans-serif;
+      text-transform: titlecase;
     }
 
     .site-title span { color: var(--accent); }
@@ -104,14 +133,14 @@
     .site-subtitle {
       font-size: 0.85rem;
       color: var(--muted);
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
     }
 
     .header-meta {
       margin-left: auto;
       font-size: 0.8rem;
       color: var(--muted);
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
       text-align: right;
     }
 
@@ -123,13 +152,25 @@
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.8rem;
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
       margin-top: 0.25rem;
       transition: border-color 0.15s, color 0.15s;
     }
 
     #refresh-btn:hover { border-color: var(--text); color: var(--text); }
     #refresh-btn:disabled { opacity: 0.4; cursor: default; }
+
+    #theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.35rem 0.6rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--text);
+      font-family: inherit;
+    }
+    #theme-toggle:hover { border-color: var(--text); }
 
     /* ── TOPIC FILTER ── */
     .filter-row {
@@ -143,7 +184,7 @@
 
     .filter-label {
       font-size: 0.72rem;
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.08em;
@@ -159,9 +200,11 @@
       border-radius: 999px;
       cursor: pointer;
       font-size: 0.78rem;
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
       transition: all 0.15s;
       white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
     }
 
     .filter-btn:hover { border-color: var(--text); color: var(--text); }
@@ -175,48 +218,11 @@
     .filter-btn[data-topic="labor"].active    { background: #fbbf24; border-color: #fbbf24; color: #000; }
     .filter-btn[data-topic="science"].active  { background: #86efac; border-color: #86efac; color: #000; }
 
-    /* ── SEARCH ROW ── */
-    .search-row {
-      padding: 0.6rem 2rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-
-    #source-select {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.3rem 0.75rem;
-      border-radius: 4px;
-      font-size: 0.82rem;
-      font-family: sans-serif;
-      cursor: pointer;
-    }
-
-    #search-input {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.3rem 0.75rem;
-      border-radius: 4px;
-      font-size: 0.82rem;
-      font-family: sans-serif;
-      width: 220px;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-
-    #search-input:focus { border-color: var(--muted); }
-    #search-input::placeholder { color: var(--muted); }
-
     #result-count {
       margin-left: auto;
       font-size: 0.78rem;
       color: var(--muted);
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
     }
 
     /* ── LAYOUT ── */
@@ -234,7 +240,7 @@
 
     .category-heading {
       font-size: 0.68rem;
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -245,15 +251,26 @@
 
     /* ── FEED ITEMS ── */
     .feed-item {
+      position: relative;
       padding: 1.5rem 2rem;
       border-bottom: 1px solid var(--border);
       transition: background 0.1s;
     }
 
     .feed-item:last-child { border-bottom: none; }
-    .feed-item:hover { background: var(--surface); }
+    .feed-item:hover { background: floralwhite; }
+
+    [data-theme="dark"] .feed-item:hover { background: var(--surface); }
+
+    .feed-item-link {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
 
     .feed-item-inner {
+      position: relative;
+      z-index: 0;
       display: flex;
       gap: 1.25rem;
       align-items: flex-start;
@@ -279,8 +296,10 @@
     }
 
     .source-badge {
+      position: relative;
+      z-index: 2;
       font-size: 0.7rem;
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -297,8 +316,10 @@
     .cat-video      { background: rgba(192,132,252,0.15); color: var(--video); }
 
     .topic-tag {
+      position: relative;
+      z-index: 2;
       font-size: 0.65rem;
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -321,21 +342,22 @@
     .item-date {
       font-size: 0.72rem;
       color: var(--muted);
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
     }
 
     .item-title {
-      font-size: 1.45rem;
+      font-size: 2.5rem;
       font-weight: 700;
       font-family: 'GT Super', 'Georgia', serif;
       line-height: 1.25;
       margin-bottom: 0.5rem;
     }
 
-    .item-title a:hover { color: var(--accent); text-decoration: none; }
+    .item-title a { color: inherit; }
+    .feed-item:hover .item-title a { color: var(--accent); text-decoration: none; }
 
     .item-snippet {
-      font-size: 0.88rem;
+      font-size: 1rem;
       color: var(--muted);
       line-height: 1.65;
       display: -webkit-box;
@@ -355,7 +377,7 @@
 
     .sidebar-heading {
       font-size: 0.68rem;
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.1em;
@@ -400,7 +422,7 @@
     #loading, #error-msg {
       padding: 4rem 2rem;
       text-align: center;
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
       color: var(--muted);
     }
 
@@ -419,7 +441,7 @@
       padding: 3rem 2rem;
       text-align: center;
       color: var(--muted);
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
     }
 
     #failed-notice {
@@ -428,7 +450,7 @@
       border-radius: 4px;
       padding: 0.5rem 1rem;
       font-size: 0.75rem;
-      font-family: sans-serif;
+      font-family: 'Verlag', sans-serif;
       color: var(--muted);
       margin: 0.75rem 2rem 0;
     }
@@ -440,10 +462,9 @@
     }
 
     @media (max-width: 600px) {
-      header, .filter-row, .search-row { padding: 0.75rem 1rem; }
+      header, .filter-row { padding: 0.75rem 1rem; }
       .feed-item { padding: 1rem; }
-      #search-input { width: 100%; }
-      .item-title { font-size: 1.2rem; }
+      .item-title { font-size: 3rem; }
       .item-image { width: 100px; height: 65px; }
     }
   </style>
@@ -452,11 +473,12 @@
 
 <header>
   <div>
-    <div class="site-title"><span>WTAF</span> — The Feed</div>
+    <div class="site-title"><span>We're Fucked!</span></div>
     <div class="site-subtitle">Your weird little flotilla, aggregated.</div>
   </div>
   <div class="header-meta">
     <div id="last-updated"></div>
+    <button id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark</button>
     <button id="refresh-btn" onclick="loadFeed(true)">Refresh</button>
   </div>
 </header>
@@ -472,14 +494,6 @@
   <button class="filter-btn" data-topic="media">Media</button>
   <button class="filter-btn" data-topic="labor">Labor</button>
   <button class="filter-btn" data-topic="science">Science</button>
-</div>
-
-<!-- Source + search -->
-<div class="search-row">
-  <select id="source-select">
-    <option value="">All sources</option>
-  </select>
-  <input id="search-input" type="search" placeholder="Search headlines…" autocomplete="off">
   <span id="result-count"></span>
 </div>
 
@@ -527,7 +541,23 @@
   let allSources = [];
   let activeTopic  = 'all';
   let activeSource = '';
-  let searchQuery  = '';
+  // ── Theme
+  const THEME_KEY = 'wtaf-theme';
+  function getTheme() {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'dark' || saved === 'light') return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : '');
+    document.getElementById('theme-toggle').textContent = theme === 'dark' ? 'Light' : 'Dark';
+    localStorage.setItem(THEME_KEY, theme);
+  }
+  applyTheme(getTheme());
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+  });
 
   // ── Sidebar + source select
   async function loadSources() {
@@ -535,7 +565,6 @@
       const res = await fetch('/api/sources');
       allSources = await res.json();
       buildSidebar();
-      buildSourceSelect();
     } catch (e) {
       console.error('Could not load sources', e);
     }
@@ -563,24 +592,6 @@
         </div>
       `;
     }).join('');
-  }
-
-  function buildSourceSelect() {
-    const sel = document.getElementById('source-select');
-    const feedSources = allSources.filter(s => s.hasRss);
-    CAT_ORDER.forEach(cat => {
-      const sources = feedSources.filter(s => s.category === cat);
-      if (!sources.length) return;
-      const og = document.createElement('optgroup');
-      og.label = CAT_LABELS[cat] || cat;
-      sources.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s.name;
-        opt.textContent = s.name;
-        og.appendChild(opt);
-      });
-      sel.appendChild(og);
-    });
   }
 
   // ── Fetch
@@ -639,6 +650,7 @@
 
     return `
       <article class="feed-item">
+        <a class="feed-item-link" href="${item.link}" target="_blank" rel="noopener" aria-label="Read ${escHtml(item.title).replace(/"/g, '&quot;')}"></a>
         <div class="feed-item-inner">
           <div class="feed-item-text">
             <div class="item-meta">
@@ -662,12 +674,9 @@
   }
 
   function renderItems() {
-    const q = searchQuery.toLowerCase();
-
     const filtered = allItems.filter(item => {
       if (activeSource && item.source !== activeSource) return false;
       if (activeTopic !== 'all' && !getTopics(item).includes(activeTopic)) return false;
-      if (q && !item.title.toLowerCase().includes(q) && !(item.snippet || '').toLowerCase().includes(q)) return false;
       return true;
     });
 
@@ -702,8 +711,7 @@
 
   // ── Filter handlers
   function filterBySource(name) {
-    document.getElementById('source-select').value = name;
-    activeSource = name;
+    activeSource = activeSource === name ? '' : name;
     renderItems();
   }
 
@@ -722,20 +730,6 @@
       activeTopic = btn.dataset.topic;
       renderItems();
     });
-  });
-
-  document.getElementById('source-select').addEventListener('change', e => {
-    activeSource = e.target.value;
-    renderItems();
-  });
-
-  let searchTimer;
-  document.getElementById('search-input').addEventListener('input', e => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => {
-      searchQuery = e.target.value.trim();
-      renderItems();
-    }, 200);
   });
 
   // ── Helpers
