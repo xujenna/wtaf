@@ -35,7 +35,7 @@ const SOURCES = [
   {
     name: 'Hell Gate',
     url: 'https://hellgatenyc.com',
-    feed: 'https://hellgatenyc.com/feed/',
+    feed: 'https://hellgatenyc.com/all-posts/rss/',
     description: 'Worker-owned NYC local newsroom',
     category: 'newsroom',
   },
@@ -210,7 +210,7 @@ const SOURCES = [
   {
     name: 'The Cut',
     url: 'https://www.thecut.com',
-    feed: 'https://www.thecut.com/feed/rss.xml',
+    feed: 'https://www.thecut.com/feeds/flipboard.rss',
     description: "New York Magazine's essential women's interest and culture vertical",
     category: 'newsroom',
   },
