@@ -10,7 +10,6 @@
     :root {
       --bg: #0d0d0d;
       --surface: #1a1a1a;
-      --surface2: #222;
       --border: #2a2a2a;
       --text: #e8e8e8;
       --muted: #888;
@@ -84,9 +83,9 @@
     #refresh-btn:hover { border-color: var(--text); color: var(--text); }
     #refresh-btn:disabled { opacity: 0.4; cursor: default; }
 
-    /* ── FILTERS ── */
-    .filters {
-      padding: 1rem 2rem;
+    /* ── FILTER ROWS ── */
+    .filter-row {
+      padding: 0.75rem 2rem;
       border-bottom: 1px solid var(--border);
       display: flex;
       gap: 0.5rem;
@@ -95,43 +94,49 @@
     }
 
     .filter-label {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-family: sans-serif;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-right: 0.25rem;
+      white-space: nowrap;
     }
 
     .filter-btn {
       background: none;
       border: 1px solid var(--border);
       color: var(--muted);
-      padding: 0.3rem 0.85rem;
+      padding: 0.25rem 0.8rem;
       border-radius: 999px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-family: sans-serif;
       transition: all 0.15s;
+      white-space: nowrap;
     }
 
     .filter-btn:hover { border-color: var(--text); color: var(--text); }
 
-    .filter-btn.active {
-      background: var(--text);
-      border-color: var(--text);
-      color: var(--bg);
-      font-weight: 600;
-    }
-
+    /* Category filter active states */
+    .filter-btn.active { background: var(--text); border-color: var(--text); color: var(--bg); font-weight: 600; }
     .filter-btn[data-cat="newsletter"].active { background: var(--newsletter); border-color: var(--newsletter); color: #000; }
     .filter-btn[data-cat="newsroom"].active   { background: var(--newsroom);   border-color: var(--newsroom);   color: #000; }
     .filter-btn[data-cat="podcast"].active    { background: var(--podcast);    border-color: var(--podcast);    color: #000; }
     .filter-btn[data-cat="video"].active      { background: var(--video);      border-color: var(--video);      color: #000; }
 
-    /* ── SOURCE FILTER ── */
-    .source-filter-wrap {
-      padding: 0.75rem 2rem;
+    /* Topic filter active states — matched by data-topic */
+    .filter-btn[data-topic="tech"].active     { background: #22d3ee; border-color: #22d3ee; color: #000; }
+    .filter-btn[data-topic="politics"].active { background: #f87171; border-color: #f87171; color: #000; }
+    .filter-btn[data-topic="nyc"].active      { background: #2dd4bf; border-color: #2dd4bf; color: #000; }
+    .filter-btn[data-topic="culture"].active  { background: #fb923c; border-color: #fb923c; color: #000; }
+    .filter-btn[data-topic="media"].active    { background: #a78bfa; border-color: #a78bfa; color: #000; }
+    .filter-btn[data-topic="labor"].active    { background: #fbbf24; border-color: #fbbf24; color: #000; }
+    .filter-btn[data-topic="science"].active  { background: #86efac; border-color: #86efac; color: #000; }
+
+    /* ── SEARCH ROW ── */
+    .search-row {
+      padding: 0.6rem 2rem;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
@@ -145,7 +150,7 @@
       color: var(--text);
       padding: 0.3rem 0.75rem;
       border-radius: 4px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-family: sans-serif;
       cursor: pointer;
     }
@@ -156,7 +161,7 @@
       color: var(--text);
       padding: 0.3rem 0.75rem;
       border-radius: 4px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-family: sans-serif;
       width: 220px;
       outline: none;
@@ -168,7 +173,7 @@
 
     #result-count {
       margin-left: auto;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--muted);
       font-family: sans-serif;
     }
@@ -177,15 +182,11 @@
     main {
       display: grid;
       grid-template-columns: 1fr 320px;
-      gap: 0;
       min-height: calc(100vh - 200px);
     }
 
     /* ── FEED ── */
-    #feed {
-      border-right: 1px solid var(--border);
-      padding: 0;
-    }
+    #feed { border-right: 1px solid var(--border); }
 
     .feed-item {
       padding: 1.25rem 2rem;
@@ -198,31 +199,53 @@
     .item-meta {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
       margin-bottom: 0.4rem;
       flex-wrap: wrap;
     }
 
     .source-badge {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-family: sans-serif;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      padding: 0.1rem 0.5rem;
+      padding: 0.1rem 0.45rem;
       border-radius: 3px;
       cursor: pointer;
     }
 
     .source-badge:hover { opacity: 0.8; }
 
-    .cat-newsletter { background: rgba(74,222,128,0.15); color: var(--newsletter); }
-    .cat-newsroom   { background: rgba(96,165,250,0.15); color: var(--newsroom); }
+    .cat-newsletter { background: rgba(74,222,128,0.15);  color: var(--newsletter); }
+    .cat-newsroom   { background: rgba(96,165,250,0.15);  color: var(--newsroom); }
     .cat-podcast    { background: rgba(245,158,11,0.15);  color: var(--podcast); }
     .cat-video      { background: rgba(192,132,252,0.15); color: var(--video); }
 
+    .topic-tag {
+      font-size: 0.65rem;
+      font-family: sans-serif;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      cursor: pointer;
+      opacity: 0.85;
+    }
+
+    .topic-tag:hover { opacity: 1; }
+
+    .topic-tech     { background: rgba(34,211,238,0.12);  color: #22d3ee; }
+    .topic-politics { background: rgba(248,113,113,0.12); color: #f87171; }
+    .topic-nyc      { background: rgba(45,212,191,0.12);  color: #2dd4bf; }
+    .topic-culture  { background: rgba(251,146,60,0.12);  color: #fb923c; }
+    .topic-media    { background: rgba(167,139,250,0.12); color: #a78bfa; }
+    .topic-labor    { background: rgba(251,191,36,0.12);  color: #fbbf24; }
+    .topic-science  { background: rgba(134,239,172,0.12); color: #86efac; }
+
     .item-date {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--muted);
       font-family: sans-serif;
     }
@@ -231,7 +254,7 @@
       font-size: 1.05rem;
       font-weight: 600;
       line-height: 1.4;
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.4rem;
     }
 
     .item-title a:hover { color: var(--accent); text-decoration: none; }
@@ -239,9 +262,9 @@
     .item-snippet {
       font-size: 0.85rem;
       color: var(--muted);
-      line-height: 1.55;
+      line-height: 1.6;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -255,54 +278,47 @@
       overflow-y: auto;
     }
 
-    .sidebar-section {
-      margin-bottom: 2rem;
-    }
-
     .sidebar-heading {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-family: sans-serif;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.1em;
       color: var(--muted);
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.65rem;
     }
 
-    .source-list {
-      list-style: none;
-    }
+    .source-list { list-style: none; margin-bottom: 1.5rem; }
 
     .source-list-item {
       padding: 0.4rem 0;
       border-bottom: 1px solid var(--border);
       display: flex;
-      align-items: baseline;
+      align-items: flex-start;
       gap: 0.5rem;
     }
 
     .source-list-item:last-child { border-bottom: none; }
-
-    .source-list-name {
-      font-size: 0.85rem;
-      font-weight: 600;
-      flex-shrink: 0;
-    }
-
-    .source-list-name a:hover { color: var(--accent); }
-
-    .source-list-desc {
-      font-size: 0.75rem;
-      color: var(--muted);
-      line-height: 1.4;
-    }
 
     .source-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
       flex-shrink: 0;
-      margin-top: 0.4rem;
+      margin-top: 0.45rem;
+    }
+
+    .source-list-name {
+      font-size: 0.83rem;
+      font-weight: 600;
+    }
+
+    .source-list-name a:hover { color: var(--accent); }
+
+    .source-list-desc {
+      font-size: 0.73rem;
+      color: var(--muted);
+      line-height: 1.4;
     }
 
     /* ── STATES ── */
@@ -314,8 +330,7 @@
     }
 
     .spinner {
-      width: 28px;
-      height: 28px;
+      width: 28px; height: 28px;
       border: 2px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
@@ -332,16 +347,15 @@
       font-family: sans-serif;
     }
 
-    /* ── FAILED NOTICE ── */
     #failed-notice {
       background: rgba(255,60,0,0.08);
       border: 1px solid rgba(255,60,0,0.2);
       border-radius: 4px;
-      padding: 0.6rem 1rem;
-      font-size: 0.78rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
       font-family: sans-serif;
       color: var(--muted);
-      margin: 1rem 2rem 0;
+      margin: 0.75rem 2rem 0;
     }
 
     /* ── RESPONSIVE ── */
@@ -351,7 +365,7 @@
     }
 
     @media (max-width: 600px) {
-      header, .filters, .source-filter-wrap { padding: 1rem; }
+      header, .filter-row, .search-row { padding: 0.75rem 1rem; }
       .feed-item { padding: 1rem; }
       #search-input { width: 100%; }
     }
@@ -370,8 +384,9 @@
   </div>
 </header>
 
-<div class="filters">
-  <span class="filter-label">Filter:</span>
+<!-- Category filter -->
+<div class="filter-row">
+  <span class="filter-label">Type:</span>
   <button class="filter-btn active" data-cat="all">All</button>
   <button class="filter-btn" data-cat="newsletter">Newsletters</button>
   <button class="filter-btn" data-cat="newsroom">Newsrooms</button>
@@ -379,7 +394,21 @@
   <button class="filter-btn" data-cat="video">Video</button>
 </div>
 
-<div class="source-filter-wrap">
+<!-- Topic filter -->
+<div class="filter-row">
+  <span class="filter-label">Topic:</span>
+  <button class="filter-btn active" data-topic="all">All</button>
+  <button class="filter-btn" data-topic="tech">Tech</button>
+  <button class="filter-btn" data-topic="politics">Politics</button>
+  <button class="filter-btn" data-topic="nyc">NYC</button>
+  <button class="filter-btn" data-topic="culture">Culture</button>
+  <button class="filter-btn" data-topic="media">Media</button>
+  <button class="filter-btn" data-topic="labor">Labor</button>
+  <button class="filter-btn" data-topic="science">Science</button>
+</div>
+
+<!-- Source + search -->
+<div class="search-row">
   <select id="source-select">
     <option value="">All sources</option>
   </select>
@@ -389,20 +418,28 @@
 
 <main>
   <div id="feed">
-    <div id="loading">
-      <div class="spinner"></div>
-      Fetching feeds…
-    </div>
+    <div id="loading"><div class="spinner"></div>Fetching feeds…</div>
     <div id="error-msg" style="display:none"></div>
     <div id="items"></div>
   </div>
 
   <aside id="sidebar">
-    <div class="sidebar-section" id="sidebar-sources"></div>
+    <div id="sidebar-sources"></div>
   </aside>
 </main>
 
 <script>
+  // ── Topic definitions
+  const TOPICS = {
+    tech:     { label: 'Tech',     keywords: ['ai', 'a.i.', 'artificial intelligence', 'software', ' app ', 'apple', 'google', 'meta ', 'twitter', 'tiktok', 'algorithm', 'data', 'privacy', 'hack', 'cyber', 'startup', 'crypto', 'bitcoin', 'blockchain', 'openai', 'chatgpt', 'musk', 'silicon', 'internet', 'digital', 'platform', 'social media', 'youtube', 'instagram', 'facebook', 'microsoft', 'amazon', 'surveillance', 'big tech', 'antitrust', 'tech ', 'technology', 'robot', 'automation', 'section 230', 'deepfake', 'sam altman', 'anthropic'] },
+    politics: { label: 'Politics', keywords: ['trump', 'biden', 'congress', 'senate', 'democrat', 'republican', 'election', 'government', 'federal', 'administration', 'president', 'white house', 'supreme court', 'doj', 'fbi', 'cia', 'epstein', 'maga', 'gop', 'legislation', 'tariff', 'immigration', 'border', 'ukraine', 'russia', 'israel', 'gaza', 'nato', 'doge', 'cabinet', 'political', 'policy', 'vote', 'ballot'] },
+    nyc:      { label: 'NYC',      keywords: ['new york', 'nyc', 'brooklyn', 'manhattan', 'bronx', 'queens', 'staten island', 'subway', 'mta', 'new york city', 'the city'] },
+    culture:  { label: 'Culture',  keywords: ['film', 'movie', 'music', 'art ', 'book', 'novel', ' tv ', 'comedy', 'celebrity', 'fashion', 'style', 'sports', 'nfl', 'nba', 'baseball', 'football', 'basketball', 'entertainment', 'hollywood', 'award', 'oscar', 'grammy', 'meme', 'viral', 'influencer', 'creator', 'fandom', 'culture', 'review', 'streaming show', 'podcast', 'album', 'tour', 'performance'] },
+    media:    { label: 'Media',    keywords: ['newsletter', 'journalist', 'journalism', 'media ', 'newspaper', 'magazine', 'reporter', 'editorial', 'substack', 'cable news', 'msnbc', 'cnn', 'fox news', 'new york times', 'layoff', 'newsroom', 'publication', 'press', 'broadcast', 'anchor'] },
+    labor:    { label: 'Labor',    keywords: ['union', 'worker', 'labor', 'strike', 'wage', 'salary', 'employment', 'workplace', 'gig economy', 'freelance', 'organize', 'collective', 'layoff', 'fired', 'hired', 'job ', 'jobs ', 'work ', 'workers'] },
+    science:  { label: 'Science',  keywords: ['science', 'research', 'study ', 'climate', 'environment', 'health', 'medicine', 'space', 'nasa', 'biology', 'chemistry', 'physics', 'discovery', 'species', 'ocean', 'planet', 'nature', 'animal', 'disease', 'drug', 'vaccine', 'gene', 'evolution'] },
+  };
+
   const CAT_COLORS = {
     newsletter: 'var(--newsletter)',
     newsroom:   'var(--newsroom)',
@@ -410,13 +447,21 @@
     video:      'var(--video)',
   };
 
+  function getTopics(item) {
+    const text = ((item.title || '') + ' ' + (item.snippet || '')).toLowerCase();
+    return Object.keys(TOPICS).filter(key =>
+      TOPICS[key].keywords.some(kw => text.includes(kw))
+    );
+  }
+
   let allItems = [];
   let allSources = [];
   let activeCategory = 'all';
+  let activeTopic = 'all';
   let activeSource = '';
   let searchQuery = '';
 
-  // ── Fetch all sources for sidebar
+  // ── Sidebar + source select
   async function loadSources() {
     try {
       const res = await fetch('/api/sources');
@@ -437,14 +482,14 @@
       const sources = allSources.filter(s => s.category === cat);
       if (!sources.length) return '';
       return `
-        <div style="margin-bottom:1.5rem">
+        <div>
           <div class="sidebar-heading">${labels[cat]}</div>
           <ul class="source-list">
             ${sources.map(s => `
               <li class="source-list-item">
                 <span class="source-dot" style="background:${CAT_COLORS[cat]}"></span>
                 <div>
-                  <span class="source-list-name"><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a></span>
+                  <div class="source-list-name"><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a></div>
                   <div class="source-list-desc">${s.description}</div>
                 </div>
               </li>
@@ -476,7 +521,7 @@
     });
   }
 
-  // ── Fetch feed items
+  // ── Fetch
   async function loadFeed(force = false) {
     if (force) {
       allItems = [];
@@ -491,22 +536,17 @@
     btn.disabled = true;
     btn.textContent = 'Loading…';
 
-    const url = force ? '/api/feeds?bust=' + Date.now() : '/api/feeds';
-
     try {
-      const res  = await fetch(url);
+      const res  = await fetch(force ? '/api/feeds?bust=' + Date.now() : '/api/feeds');
       const data = await res.json();
       allItems   = data.items || [];
 
-      // Show last-updated
-      const now = new Date();
       document.getElementById('last-updated').textContent =
-        `Updated ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
-      // Show failed feeds notice
       const existing = document.getElementById('failed-notice');
       if (existing) existing.remove();
-      if (data.failed && data.failed.length > 0) {
+      if (data.failed?.length) {
         const notice = document.createElement('div');
         notice.id = 'failed-notice';
         notice.textContent = `Couldn't reach: ${data.failed.join(', ')}`;
@@ -531,12 +571,12 @@
     const filtered = allItems.filter(item => {
       if (activeCategory !== 'all' && item.category !== activeCategory) return false;
       if (activeSource && item.source !== activeSource) return false;
+      if (activeTopic !== 'all' && !getTopics(item).includes(activeTopic)) return false;
       if (q && !item.title.toLowerCase().includes(q) && !(item.snippet || '').toLowerCase().includes(q)) return false;
       return true;
     });
 
-    const count = document.getElementById('result-count');
-    count.textContent = filtered.length
+    document.getElementById('result-count').textContent = filtered.length
       ? `${filtered.length.toLocaleString()} item${filtered.length === 1 ? '' : 's'}`
       : '';
 
@@ -547,39 +587,63 @@
       return;
     }
 
-    container.innerHTML = filtered.map(item => `
-      <article class="feed-item">
-        <div class="item-meta">
-          <span
-            class="source-badge cat-${item.category}"
-            onclick="filterBySource('${item.source.replace(/'/g, "\\'")}')"
-            title="Filter to ${item.source}"
-          >${item.source}</span>
-          ${item.date ? `<span class="item-date">${formatDate(item.date)}</span>` : ''}
-        </div>
-        <div class="item-title">
-          <a href="${item.link}" target="_blank" rel="noopener">${escHtml(item.title)}</a>
-        </div>
-        ${item.snippet ? `<div class="item-snippet">${escHtml(item.snippet)}</div>` : ''}
-      </article>
-    `).join('');
+    container.innerHTML = filtered.map(item => {
+      const itemTopics = getTopics(item);
+      const topicTags = itemTopics.map(t =>
+        `<span class="topic-tag topic-${t}" onclick="filterByTopic('${t}')" title="Filter to ${TOPICS[t].label}">${TOPICS[t].label}</span>`
+      ).join('');
+
+      return `
+        <article class="feed-item">
+          <div class="item-meta">
+            <span
+              class="source-badge cat-${item.category}"
+              onclick="filterBySource('${item.source.replace(/'/g, "\\'")}')"
+              title="Filter to ${item.source}"
+            >${item.source}</span>
+            ${topicTags}
+            ${item.date ? `<span class="item-date">${formatDate(item.date)}</span>` : ''}
+          </div>
+          <div class="item-title">
+            <a href="${item.link}" target="_blank" rel="noopener">${escHtml(item.title)}</a>
+          </div>
+          ${item.snippet ? `<div class="item-snippet">${escHtml(item.snippet)}</div>` : ''}
+        </article>
+      `;
+    }).join('');
   }
 
-  // ── Filters
+  // ── Filter handlers
   function filterBySource(name) {
-    const sel = document.getElementById('source-select');
-    sel.value   = name;
+    document.getElementById('source-select').value = name;
     activeSource = name;
     renderItems();
   }
 
-  document.querySelectorAll('.filter-btn').forEach(btn => {
+  function filterByTopic(topic) {
+    document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
+    const btn = document.querySelector(`.filter-btn[data-topic="${topic}"]`);
+    if (btn) btn.classList.add('active');
+    activeTopic = topic;
+    renderItems();
+  }
+
+  document.querySelectorAll('.filter-btn[data-cat]').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.filter-btn[data-cat]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       activeCategory = btn.dataset.cat;
       document.getElementById('source-select').value = '';
       activeSource = '';
+      renderItems();
+    });
+  });
+
+  document.querySelectorAll('.filter-btn[data-topic]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTopic = btn.dataset.topic;
       renderItems();
     });
   });
@@ -603,8 +667,7 @@
     if (!iso) return '';
     const d = new Date(iso);
     if (isNaN(d)) return '';
-    const now = new Date();
-    const diff = now - d;
+    const diff = Date.now() - d;
     const mins  = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days  = Math.floor(diff / 86400000);

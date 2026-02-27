@@ -207,6 +207,13 @@ const SOURCES = [
     description: 'YouTuber platform expanding into original titles',
     category: 'video',
   },
+  {
+    name: 'The Cut',
+    url: 'https://www.thecut.com',
+    feed: 'https://www.thecut.com/feed/rss.xml',
+    description: "New York Magazine's essential women's interest and culture vertical",
+    category: 'newsroom',
+  },
 ];
 
 let cache = null;
@@ -243,7 +250,7 @@ app.get('/api/feeds', async (req, res) => {
         snippet: (item.contentSnippet || item.summary || '')
           .replace(/\s+/g, ' ')
           .trim()
-          .slice(0, 200) || null,
+          .slice(0, 450) || null,
       }));
     })
   );
