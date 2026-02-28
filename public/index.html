@@ -945,7 +945,7 @@
       `;
     };
 
-    const customSources = getCustomSources();
+    const customSources = getCustomSources().filter(s => s.feedUrl);
     const customSection = customSources.length ? `
       <div>
         <div class="sidebar-heading">My Sources</div>
