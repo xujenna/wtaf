@@ -619,6 +619,47 @@
       line-height: 1.4;
     }
 
+    /* ── ADD SOURCE ── */
+    #sidebar-add-source { margin-bottom: 1.25rem; }
+    #add-source-form { display: flex; gap: 0.4rem; }
+    #add-source-input {
+      flex: 1;
+      min-width: 0;
+      font: inherit;
+      font-size: 0.78rem;
+      font-family: 'Verlag', sans-serif;
+      padding: 0.35rem 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+    }
+    #add-source-input:focus { border-color: var(--accent); }
+    #add-source-input::placeholder { color: var(--muted); }
+    #add-source-btn {
+      font: inherit;
+      font-size: 0.78rem;
+      font-family: 'Verlag', sans-serif;
+      padding: 0.35rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    #add-source-btn:hover { background: var(--text); color: var(--bg); }
+    #add-source-btn:disabled { opacity: 0.5; cursor: default; }
+    #add-source-status {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin: 0.3rem 0 0;
+      min-height: 1em;
+    }
+    #add-source-status.error { color: #c44; }
+
     /* ── STATES ── */
     #loading, #error-msg {
       padding: 4rem 2rem;
@@ -701,6 +742,13 @@
   </div>
 
   <aside id="sidebar">
+    <div id="sidebar-add-source">
+      <form id="add-source-form" autocomplete="off">
+        <input id="add-source-input" type="url" placeholder="Paste RSS feed URL…" aria-label="RSS feed URL" />
+        <button id="add-source-btn" type="submit">Add</button>
+      </form>
+      <p id="add-source-status"></p>
+    </div>
     <div id="sidebar-sources"></div>
   </aside>
 </main>
@@ -745,10 +793,11 @@
     newsroom:   'var(--newsroom)',
     podcast:    'var(--podcast)',
     video:      'var(--video)',
+    custom:     'var(--accent)',
   };
 
-  const CAT_ORDER  = ['newsroom', 'newsletter', 'podcast', 'video'];
-  const CAT_LABELS = { newsroom: 'Newsrooms', newsletter: 'Newsletters', podcast: 'Podcasts', video: 'Video' };
+  const CAT_ORDER  = ['newsroom', 'newsletter', 'podcast', 'video', 'custom'];
+  const CAT_LABELS = { newsroom: 'Newsrooms', newsletter: 'Newsletters', podcast: 'Podcasts', video: 'Video', custom: 'My Sources' };
 
   const EXCLUDE_KEYWORDS = [
     'sports', 'nfl', 'nba', 'mlb', 'nhl', 'soccer', 'football', 'basketball', 'baseball', 'hockey',
@@ -785,6 +834,14 @@
     localStorage.setItem(HIDDEN_SOURCES_KEY, JSON.stringify(arr));
   }
 
+  const CUSTOM_SOURCES_KEY = 'wtaf-custom-sources';
+  function getCustomSources() {
+    try { return JSON.parse(localStorage.getItem(CUSTOM_SOURCES_KEY) || '[]'); } catch { return []; }
+  }
+  function setCustomSources(arr) {
+    localStorage.setItem(CUSTOM_SOURCES_KEY, JSON.stringify(arr));
+  }
+
   const TRASH_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
 
   // ── Theme
@@ -809,6 +866,55 @@
     applyTheme(next);
   });
 
+  // ── Add custom source
+  document.getElementById('add-source-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input  = document.getElementById('add-source-input');
+    const status = document.getElementById('add-source-status');
+    const btn    = document.getElementById('add-source-btn');
+    const feedUrl = input.value.trim();
+    if (!feedUrl) return;
+
+    const existing = getCustomSources();
+    if (existing.some(s => s.feedUrl === feedUrl)) {
+      status.className = 'error';
+      status.textContent = 'This feed is already added.';
+      return;
+    }
+
+    status.className = '';
+    status.textContent = 'Loading…';
+    btn.disabled = true;
+
+    try {
+      const res  = await fetch('/api/feed?url=' + encodeURIComponent(feedUrl));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not load feed.');
+
+      setCustomSources([...existing, { name: data.name, url: data.url, feedUrl, description: data.description }]);
+
+      const hidden = getHiddenSourceNames();
+      const newItems = (data.items || []).filter(item => !hidden.includes(item.source));
+      allItems = [...allItems, ...newItems].sort((a, b) => {
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        return new Date(b.date) - new Date(a.date);
+      });
+
+      input.value = '';
+      status.className = '';
+      status.textContent = `Added "${data.name}"`;
+      setTimeout(() => { if (status.textContent.startsWith('Added')) status.textContent = ''; }, 3000);
+      buildSidebar();
+      renderItems();
+    } catch (err) {
+      status.className = 'error';
+      status.textContent = err.message || 'Could not load feed.';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
   // ── Sidebar + source select
   async function loadSources() {
     try {
@@ -824,21 +930,32 @@
     const hidden = getHiddenSourceNames();
     const section = document.getElementById('sidebar-sources');
 
-    const sourceRow = (name, desc, url, cat) => {
+    const sourceRow = (name, desc, url, cat, feedUrl = null) => {
       const active = activeSource === name ? ' source-list-item-active' : '';
+      const customAttr = feedUrl ? ` data-custom-feed-url="${escHtml(feedUrl)}"` : '';
       return `
-        <li class="source-list-item${active}" data-source-name="${escHtml(name)}" role="button" tabindex="0">
+        <li class="source-list-item${active}" data-source-name="${escHtml(name)}"${customAttr} role="button" tabindex="0">
           <span class="source-dot" style="background:${CAT_COLORS[cat]}"></span>
           <div>
             <div class="source-list-name"><a href="${escHtml(url)}" target="_blank" rel="noopener">${escHtml(name)}</a></div>
-            <div class="source-list-desc">${desc}</div>
+            <div class="source-list-desc">${escHtml(desc)}</div>
           </div>
           <button type="button" class="source-remove" title="Remove source" aria-label="Remove source">${TRASH_ICON}</button>
         </li>
       `;
     };
 
-    const html = CAT_ORDER.map(cat => {
+    const customSources = getCustomSources();
+    const customSection = customSources.length ? `
+      <div>
+        <div class="sidebar-heading">My Sources</div>
+        <ul class="source-list">
+          ${customSources.map(s => sourceRow(s.name, s.description, s.url, 'custom', s.feedUrl)).join('')}
+        </ul>
+      </div>
+    ` : '';
+
+    const catSections = CAT_ORDER.filter(c => c !== 'custom').map(cat => {
       const sources = allSources.filter(s => s.category === cat && !hidden.includes(s.name));
       if (!sources.length) return '';
       return `
@@ -850,7 +967,8 @@
         </div>
       `;
     }).join('');
-    section.innerHTML = html;
+
+    section.innerHTML = customSection + catSections;
   }
 
   document.getElementById('sidebar-sources').addEventListener('click', (e) => {
@@ -860,14 +978,19 @@
       e.stopPropagation();
       const item = removeBtn.closest('.source-list-item');
       const name = item?.dataset.sourceName;
+      const customFeedUrl = item?.dataset.customFeedUrl;
       if (name) {
-        const list = getHiddenSourceNames();
-        if (!list.includes(name)) {
-          setHiddenSourceNames([...list, name]);
-          if (activeSource === name) activeSource = '';
-          buildSidebar();
-          renderItems();
+        if (customFeedUrl) {
+          setCustomSources(getCustomSources().filter(s => s.feedUrl !== customFeedUrl));
+          allItems = allItems.filter(i => i.source !== name);
+        } else {
+          const list = getHiddenSourceNames();
+          if (!list.includes(name)) setHiddenSourceNames([...list, name]);
+          allItems = allItems.filter(i => i.source !== name);
         }
+        if (activeSource === name) activeSource = '';
+        buildSidebar();
+        renderItems();
       }
       return;
     }
@@ -909,6 +1032,24 @@
 
       const hidden = getHiddenSourceNames();
       allItems = allItems.filter(item => !hidden.includes(item.source));
+
+      // Merge user-added custom sources
+      const customSources = getCustomSources();
+      if (customSources.length) {
+        const customResults = await Promise.allSettled(
+          customSources.map(s => fetch('/api/feed?url=' + encodeURIComponent(s.feedUrl)).then(r => r.json()))
+        );
+        customResults.forEach(r => {
+          if (r.status === 'fulfilled' && Array.isArray(r.value.items)) {
+            allItems.push(...r.value.items.filter(item => !hidden.includes(item.source)));
+          }
+        });
+        allItems.sort((a, b) => {
+          if (!a.date) return 1;
+          if (!b.date) return -1;
+          return new Date(b.date) - new Date(a.date);
+        });
+      }
 
       document.getElementById('last-updated').textContent =
         `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;

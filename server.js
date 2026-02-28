@@ -308,6 +308,43 @@ app.get('/api/sources', (req, res) => {
   })));
 });
 
+// Fetch and validate a single RSS/Atom feed URL (used for user-added sources)
+app.get('/api/feed', async (req, res) => {
+  const rawUrl = req.query.url;
+  if (!rawUrl || typeof rawUrl !== 'string') {
+    return res.status(400).json({ error: 'Missing url' });
+  }
+  let url;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    return res.status(400).json({ error: 'Invalid url' });
+  }
+  if (!['http:', 'https:'].includes(url.protocol)) {
+    return res.status(400).json({ error: 'Only http(s) URLs allowed' });
+  }
+  try {
+    const feed = await parser.parseURL(url.href);
+    const name    = feed.title?.trim() || url.hostname;
+    const siteUrl = feed.link?.trim()  || url.origin;
+    const items = feed.items.slice(0, 8).map(item => ({
+      source:    name,
+      sourceUrl: siteUrl,
+      category:  'custom',
+      title:     item.title?.trim(),
+      link:      item.link,
+      date:      item.isoDate || item.pubDate || null,
+      snippet:   (item.contentSnippet || item.summary || '').replace(/\s+/g, ' ').trim().slice(0, 800) || null,
+      content:   extractContent(item),
+      image:     extractImage(item),
+    })).filter(item => item.title && item.link);
+    res.json({ name, url: siteUrl, description: feed.description?.trim() || '', items });
+  } catch (err) {
+    console.error('Custom feed fetch failed:', url.href, err.message);
+    res.status(422).json({ error: 'Could not fetch or parse that URL as an RSS/Atom feed.' });
+  }
+});
+
 app.get('/api/feeds', async (req, res) => {
   const useCache = cache && Date.now() - cacheTime < CACHE_TTL;
 
