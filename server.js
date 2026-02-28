@@ -278,6 +278,20 @@ const SOURCES = [
     description: "New York Magazine's food and restaurant vertical",
     category: 'newsroom',
   },
+  {
+    name: 'NASA APOD',
+    url: 'https://apod.nasa.gov/apod/',
+    feed: 'http://apod.nasa.gov/apod.rss',
+    description: "A different image of our universe each day with a brief explanation",
+    category: 'newsroom',
+  },
+  {
+    name: 'MIT Technology Review',
+    url: 'https://www.technologyreview.com',
+    feed: 'https://www.technologyreview.com/stories.rss',
+    description: "Independent media covering emerging technology and innovation",
+    category: 'newsroom',
+  },
 ];
 
 let cache = null;
