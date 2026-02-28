@@ -348,8 +348,37 @@
       align-items: center;
       gap: 0.4rem;
       margin-bottom: 0.5rem;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
+
+    .item-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.1rem;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 2;
+    }
+    .item-action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: none;
+      background: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0;
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s;
+    }
+    .feed-item:hover .item-action-btn { opacity: 1; }
+    .item-action-btn:hover { color: var(--text); }
+    .item-action-btn.item-saved { color: var(--accent); opacity: 1; }
+    #saved-filter-btn { --topic-color: var(--accent); }
 
     .source-badge {
       position: relative;
@@ -728,6 +757,7 @@
   <button class="filter-btn" data-topic="media"><span class="filter-btn-width" aria-hidden="true">Media</span><span class="filter-btn-text">Media</span></button>
   <button class="filter-btn" data-topic="science"><span class="filter-btn-width" aria-hidden="true">Science</span><span class="filter-btn-text">Science</span></button>
   <button class="filter-btn" data-topic="politics"><span class="filter-btn-width" aria-hidden="true">Politics</span><span class="filter-btn-text">Politics</span></button>
+  <button class="filter-btn" id="saved-filter-btn"><span class="filter-btn-width" aria-hidden="true">Saved</span><span class="filter-btn-text">Saved</span></button>
   <span class="filter-meta">
     <span id="result-count"></span>
     <span id="last-updated"></span>
@@ -760,6 +790,7 @@
       <div style="display:flex;gap:0.75rem;align-items:center;">
         <a id="lightbox-open-tab" href="#" target="_blank" rel="noopener">Open in new tab</a>
         <button id="lightbox-reader-view-btn" type="button" style="display:none;">Reader view</button>
+        <button id="lightbox-save-btn" type="button">Save for later</button>
       </div>
       <span id="lightbox-paywall-note">Hit a paywall? Open in new tab so your login applies.</span>
       <button id="lightbox-close" type="button" aria-label="Close">×</button>
@@ -822,6 +853,7 @@
   let allSources = [];
   let activeTopic  = 'all';
   let activeSource = '';
+  let viewSaved  = false;
 
   const HIDDEN_SOURCES_KEY = 'wtaf-hidden-sources';
   function getHiddenSourceNames() {
@@ -852,7 +884,32 @@
     localStorage.setItem(READ_ITEMS_KEY, JSON.stringify([...read]));
   }
 
-  const TRASH_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+  const HIDDEN_ITEMS_KEY = 'wtaf-hidden-items';
+  function getHiddenItems() {
+    try { return new Set(JSON.parse(localStorage.getItem(HIDDEN_ITEMS_KEY) || '[]')); } catch { return new Set(); }
+  }
+  function hideItem(url) {
+    const h = getHiddenItems(); h.add(url);
+    localStorage.setItem(HIDDEN_ITEMS_KEY, JSON.stringify([...h]));
+  }
+
+  const SAVED_ITEMS_KEY = 'wtaf-saved-items';
+  function getSavedItems() {
+    try { return JSON.parse(localStorage.getItem(SAVED_ITEMS_KEY) || '[]'); } catch { return []; }
+  }
+  function isSaved(url) { return getSavedItems().some(s => s.link === url); }
+  function toggleSaved(item) {
+    const saved = getSavedItems();
+    const idx = saved.findIndex(s => s.link === item.link);
+    if (idx >= 0) saved.splice(idx, 1); else saved.unshift(item);
+    localStorage.setItem(SAVED_ITEMS_KEY, JSON.stringify(saved));
+    return idx < 0; // true = now saved
+  }
+
+  const TRASH_ICON    = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+  const HIDE_ICON     = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  const BOOKMARK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
+  const BOOKMARK_FILLED = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
 
   // ── Theme
   const THEME_KEY = 'wtaf-theme';
@@ -1103,6 +1160,10 @@
               >${item.source}</span>
               ${topicTags}
               ${item.date ? `<span class="item-date">${formatDate(item.date)}</span>` : ''}
+              <span class="item-actions">
+                <button class="item-action-btn${isSaved(item.link) ? ' item-saved' : ''}" data-action="save" title="Save for later" aria-label="Save for later">${isSaved(item.link) ? BOOKMARK_FILLED : BOOKMARK_ICON}</button>
+                <button class="item-action-btn" data-action="hide" title="Dismiss" aria-label="Dismiss">${HIDE_ICON}</button>
+              </span>
             </div>
             <div class="item-title">
               <span>${escHtml(item.title)}</span>
@@ -1115,14 +1176,21 @@
   }
 
   function renderItems() {
-    const read = getReadItems();
-    const filtered = allItems.filter(item => {
-      if (read.has(item.link)) return false;
-      if (isExcluded(item)) return false;
-      if (activeSource && item.source !== activeSource) return false;
-      if (activeTopic !== 'all' && !getTopics(item).includes(activeTopic)) return false;
-      return true;
-    });
+    let filtered;
+    if (viewSaved) {
+      filtered = getSavedItems();
+    } else {
+      const read   = getReadItems();
+      const hidden = getHiddenItems();
+      filtered = allItems.filter(item => {
+        if (read.has(item.link))   return false;
+        if (hidden.has(item.link)) return false;
+        if (isExcluded(item)) return false;
+        if (activeSource && item.source !== activeSource) return false;
+        if (activeTopic !== 'all' && !getTopics(item).includes(activeTopic)) return false;
+        return true;
+      });
+    }
 
     document.getElementById('result-count').textContent = filtered.length
       ? `${filtered.length.toLocaleString()} item${filtered.length === 1 ? '' : 's'}`
@@ -1146,6 +1214,8 @@
   }
 
   function filterByTopic(topic) {
+    viewSaved = false;
+    document.getElementById('saved-filter-btn').classList.remove('active');
     document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
     const btn = document.querySelector(`.filter-btn[data-topic="${topic}"]`);
     if (btn) btn.classList.add('active');
@@ -1155,6 +1225,8 @@
 
   document.querySelectorAll('.filter-btn[data-topic]').forEach(btn => {
     btn.addEventListener('click', () => {
+      viewSaved = false;
+      document.getElementById('saved-filter-btn').classList.remove('active');
       document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       activeTopic = btn.dataset.topic;
@@ -1174,7 +1246,8 @@
   // Per-hostname cache: hostname → Promise<boolean> (true = can embed)
   const embedCache = new Map();
   const lightboxReaderViewBtn = document.getElementById('lightbox-reader-view-btn');
-  let currentLightboxUrl = '';
+  let currentLightboxUrl  = '';
+  let currentLightboxItem = null;
 
   function checkCanEmbed(url) {
     let host = '';
@@ -1219,11 +1292,20 @@
       });
   }
 
+  function updateLightboxSaveBtn() {
+    const btn = document.getElementById('lightbox-save-btn');
+    const saved = currentLightboxItem && isSaved(currentLightboxItem.link);
+    btn.textContent = saved ? 'Saved ✓' : 'Save for later';
+    btn.style.color = saved ? 'var(--accent)' : '';
+  }
+
   async function openLightbox(url) {
-    currentLightboxUrl = url;
+    currentLightboxUrl  = url;
+    currentLightboxItem = allItems.find(i => i.link === url) || getSavedItems().find(i => i.link === url) || null;
     markAsRead(url);
     allItems = allItems.filter(i => i.link !== url);
     renderItems();
+    updateLightboxSaveBtn();
     document.getElementById('lightbox-open-tab').href = url;
     document.getElementById('lightbox-open-tab-fallback').href = url;
 
@@ -1288,6 +1370,54 @@
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+  });
+
+  // ── Item action buttons (save / hide)
+  document.getElementById('items').addEventListener('click', (e) => {
+    const btn = e.target.closest('.item-action-btn[data-action]');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const article = btn.closest('.feed-item');
+    const url = article?.dataset.itemLink;
+    if (!url) return;
+
+    if (btn.dataset.action === 'hide') {
+      hideItem(url);
+      allItems = allItems.filter(i => i.link !== url);
+      renderItems();
+    } else if (btn.dataset.action === 'save') {
+      const item = allItems.find(i => i.link === url) || getSavedItems().find(i => i.link === url);
+      if (!item) return;
+      const nowSaved = toggleSaved(item);
+      btn.innerHTML = nowSaved ? BOOKMARK_FILLED : BOOKMARK_ICON;
+      btn.classList.toggle('item-saved', nowSaved);
+      if (viewSaved && !nowSaved) renderItems(); // remove from saved view if un-saved
+    }
+  });
+
+  // ── Lightbox save button
+  document.getElementById('lightbox-save-btn').addEventListener('click', () => {
+    if (!currentLightboxItem) return;
+    toggleSaved(currentLightboxItem);
+    updateLightboxSaveBtn();
+    // refresh any visible saved/unsaved state in the list
+    renderItems();
+  });
+
+  // ── Saved filter button
+  const savedFilterBtn = document.getElementById('saved-filter-btn');
+  savedFilterBtn.addEventListener('click', () => {
+    viewSaved = !viewSaved;
+    savedFilterBtn.classList.toggle('active', viewSaved);
+    if (viewSaved) {
+      // deactivate topic filters while in saved view
+      document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
+    } else {
+      const activeTopicBtn = document.querySelector(`.filter-btn[data-topic="${activeTopic}"]`);
+      if (activeTopicBtn) activeTopicBtn.classList.add('active');
+    }
+    renderItems();
   });
 
   // ── Helpers
