@@ -326,16 +326,17 @@
 
     [data-theme="dark"] .feed-item:hover { background: var(--surface); }
 
+    .feed-item { cursor: pointer; }
+
     .feed-item-link {
       position: absolute;
       inset: 0;
       z-index: 1;
-      cursor: pointer;
+      pointer-events: none;
     }
 
     .feed-item-inner {
       position: relative;
-      z-index: 0;
       display: flex;
       gap: 1.25rem;
       align-items: flex-start;
@@ -1347,12 +1348,11 @@
   lightboxReaderViewBtn.addEventListener('click', () => showReaderView(currentLightboxUrl));
 
   document.getElementById('items').addEventListener('click', (e) => {
-    const trigger = e.target.closest('.feed-item-link[data-open-lightbox]');
-    if (!trigger) return;
+    if (e.target.closest('.item-action-btn, .source-badge, .topic-tag')) return;
+    const article = e.target.closest('.feed-item[data-item-link]');
+    if (!article) return;
     e.preventDefault();
-    const article = trigger.closest('.feed-item');
-    const url = article?.dataset.itemLink;
-    if (url) openLightbox(url);
+    openLightbox(article.dataset.itemLink);
   });
 
   document.getElementById('items').addEventListener('keydown', (e) => {
