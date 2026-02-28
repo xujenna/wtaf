@@ -267,7 +267,7 @@ const SOURCES = [
   {
     name: 'Intelligencer',
     url: 'https://nymag.com/intelligencer',
-    feed: 'https://feeds.feedburner.com/nymag/intelligencer',
+    feed: 'http://nymag.com/feeds/intelligencer/flipboard.rss',
     description: "New York Magazine's politics and news vertical",
     category: 'newsroom',
   },
@@ -283,6 +283,13 @@ const SOURCES = [
     url: 'https://apod.nasa.gov/apod/',
     feed: 'http://apod.nasa.gov/apod.rss',
     description: "A different image of our universe each day with a brief explanation",
+    category: 'newsroom',
+  },
+  {
+    name: 'Semafor',
+    url: 'https://www.semafor.com',
+    feed: 'https://www.semafor.com/rss.xml',
+    description: 'Global news with transparent reporting and sourcing',
     category: 'newsroom',
   },
   {
