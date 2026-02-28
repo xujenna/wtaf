@@ -1123,22 +1123,7 @@
       return;
     }
 
-    // Group by category, sorted by recency within each group
-    const grouped = {};
-    CAT_ORDER.forEach(cat => { grouped[cat] = []; });
-    filtered.forEach(item => {
-      if (grouped[item.category]) grouped[item.category].push(item);
-    });
-
-    container.innerHTML = CAT_ORDER
-      .filter(cat => grouped[cat].length > 0)
-      .map(cat => `
-        <div class="category-section">
-          <h2 class="category-heading">${CAT_LABELS[cat]}</h2>
-          ${grouped[cat].map(renderItem).join('')}
-        </div>
-      `)
-      .join('');
+    container.innerHTML = filtered.map(renderItem).join('');
   }
 
   // ── Filter handlers

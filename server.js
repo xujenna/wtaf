@@ -160,20 +160,6 @@ const SOURCES = [
     category: 'newsletter',
   },
   {
-    name: 'Dropout',
-    url: 'https://www.dropout.tv',
-    feed: null,
-    description: 'Subscriber comedy streaming from former CollegeHumor alums',
-    category: 'video',
-  },
-  {
-    name: 'Nebula',
-    url: 'https://nebula.tv',
-    feed: null,
-    description: 'YouTuber platform expanding into original titles',
-    category: 'video',
-  },
-  {
     name: 'The Cut',
     url: 'https://www.thecut.com',
     feed: 'https://www.thecut.com/feeds/flipboard.rss',
