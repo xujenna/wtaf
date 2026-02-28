@@ -358,6 +358,41 @@ app.get('/api/feeds', async (req, res) => {
   res.json({ items, failed });
 });
 
+// Check whether a URL can be embedded in an iframe
+// by doing a HEAD request and inspecting X-Frame-Options / CSP frame-ancestors
+app.get('/api/can-embed', async (req, res) => {
+  const rawUrl = req.query.url;
+  if (!rawUrl || typeof rawUrl !== 'string') {
+    return res.status(400).json({ error: 'Missing url' });
+  }
+  let url;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    return res.status(400).json({ error: 'Invalid url' });
+  }
+  if (!['http:', 'https:'].includes(url.protocol)) {
+    return res.status(400).json({ error: 'Only http(s) URLs allowed' });
+  }
+  try {
+    const response = await fetch(url.href, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(5000),
+      headers: { 'User-Agent': 'WTAF-Feed/1.0 (RSS Aggregator)' },
+      redirect: 'follow',
+    });
+    const xfo = response.headers.get('x-frame-options') || '';
+    const csp = response.headers.get('content-security-policy') || '';
+    const xfoBlocked = /deny|sameorigin/i.test(xfo);
+    // block if frame-ancestors is present but doesn't allow all origins via *
+    const cspBlocked = /frame-ancestors\s+[^;*]/.test(csp) && !/frame-ancestors[^;]*\*/i.test(csp);
+    res.json({ canEmbed: !xfoBlocked && !cspBlocked });
+  } catch (err) {
+    console.error('can-embed check failed:', url.href, err.message);
+    res.json({ canEmbed: true }); // assume embeddable if check fails
+  }
+});
+
 // Extract main article content from a URL (readability)
 app.get('/api/article', async (req, res) => {
   const rawUrl = req.query.url;

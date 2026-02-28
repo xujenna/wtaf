@@ -1017,49 +1017,73 @@
   const lightboxClose = document.getElementById('lightbox-close');
   const lightboxBackdrop = document.getElementById('lightbox-backdrop');
 
-  const EMBED_BLOCKED_HOSTS = ['dropsitenews.com', 'www.dropsitenews.com', 'apod.nasa.gov', 'technologyreview.com', 'www.technologyreview.com', 'citationneeded.news', 'www.citationneeded.news', 'linkinbio.substack.com', 'usermag.co', 'www.usermag.co', 'deezlinks.com', 'www.deezlinks.com'];
+  // Known blocked hosts — used as an instant fast-path so we skip the network check
+  const KNOWN_BLOCKED = new Set(['dropsitenews.com', 'apod.nasa.gov', 'technologyreview.com', 'citationneeded.news', 'linkinbio.substack.com', 'usermag.co', 'deezlinks.com']);
+  // Per-hostname cache: hostname → Promise<boolean> (true = can embed)
+  const embedCache = new Map();
 
-  function openLightbox(url) {
+  function checkCanEmbed(url) {
     let host = '';
     try { host = new URL(url).hostname.toLowerCase(); } catch (_) {}
-    const blocked = EMBED_BLOCKED_HOSTS.some(h => host === h || host.endsWith('.' + h));
-
-    const openTabLink = document.getElementById('lightbox-open-tab');
-    const openTabFallback = document.getElementById('lightbox-open-tab-fallback');
-    openTabLink.href = url;
-    openTabFallback.href = url;
-
-    if (blocked) {
-      lightboxIframe.src = 'about:blank';
-      lightboxIframe.style.display = 'none';
-      lightboxEmbedBlocked.style.display = 'block';
-      const readerLoading = document.getElementById('lightbox-reader-loading');
-      const readerError   = document.getElementById('lightbox-reader-error');
-      const readerContent = document.getElementById('lightbox-reader-content');
-      readerLoading.style.display = 'block';
-      readerError.style.display   = 'none';
-      readerContent.style.display = 'none';
-      readerContent.innerHTML     = '';
-      fetch('/api/article?url=' + encodeURIComponent(url))
-        .then(r => r.json())
-        .then(data => {
-          if (!data.content) throw new Error('no content');
-          readerContent.innerHTML     = data.content;
-          readerLoading.style.display = 'none';
-          readerContent.style.display = 'block';
-        })
-        .catch(() => {
-          readerLoading.style.display = 'none';
-          readerError.style.display   = 'block';
-        });
-    } else {
-      lightboxIframe.src = url;
-      lightboxIframe.style.display = 'block';
-      lightboxEmbedBlocked.style.display = 'none';
+    if (KNOWN_BLOCKED.has(host) || [...KNOWN_BLOCKED].some(b => host.endsWith('.' + b))) {
+      return Promise.resolve(false);
     }
+    if (!embedCache.has(host)) {
+      embedCache.set(host,
+        fetch('/api/can-embed?url=' + encodeURIComponent(url))
+          .then(r => r.json())
+          .then(d => d.canEmbed !== false)
+          .catch(() => true)
+      );
+    }
+    return embedCache.get(host);
+  }
+
+  function showReaderView(url) {
+    const readerLoading = document.getElementById('lightbox-reader-loading');
+    const readerError   = document.getElementById('lightbox-reader-error');
+    const readerContent = document.getElementById('lightbox-reader-content');
+    readerLoading.style.display = 'block';
+    readerError.style.display   = 'none';
+    readerContent.style.display = 'none';
+    readerContent.innerHTML     = '';
+    fetch('/api/article?url=' + encodeURIComponent(url))
+      .then(r => r.json())
+      .then(data => {
+        if (!data.content) throw new Error('no content');
+        readerContent.innerHTML     = data.content;
+        readerLoading.style.display = 'none';
+        readerContent.style.display = 'block';
+      })
+      .catch(() => {
+        readerLoading.style.display = 'none';
+        readerError.style.display   = 'block';
+      });
+  }
+
+  async function openLightbox(url) {
+    document.getElementById('lightbox-open-tab').href = url;
+    document.getElementById('lightbox-open-tab-fallback').href = url;
+
+    // Show loading state immediately while the embed check runs
+    lightboxIframe.src = 'about:blank';
+    lightboxIframe.style.display = 'none';
+    lightboxEmbedBlocked.style.display = 'block';
+    document.getElementById('lightbox-reader-loading').style.display = 'block';
+    document.getElementById('lightbox-reader-error').style.display   = 'none';
+    document.getElementById('lightbox-reader-content').style.display = 'none';
     lightbox.classList.add('open');
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+
+    const canEmbed = await checkCanEmbed(url);
+    if (canEmbed) {
+      lightboxEmbedBlocked.style.display = 'none';
+      lightboxIframe.style.display       = 'block';
+      lightboxIframe.src                 = url;
+    } else {
+      showReaderView(url);
+    }
   }
 
   function closeLightbox() {
