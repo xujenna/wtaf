@@ -1,6 +1,8 @@
 const express = require('express');
 const Parser = require('rss-parser');
 const path = require('path');
+const { JSDOM } = require('jsdom');
+const { Readability } = require('@mozilla/readability');
 
 const app = express();
 const parser = new Parser({
@@ -10,6 +12,7 @@ const parser = new Parser({
     item: [
       ['media:content',   'mediaContent'],
       ['media:thumbnail', 'mediaThumbnail'],
+      ['content:encoded', 'contentEncoded'],
     ],
   },
 });
@@ -28,10 +31,17 @@ function extractImage(item) {
   if (item.enclosure?.url && item.enclosure?.type?.startsWith('image/')) {
     return item.enclosure.url;
   }
-  const html = item['content:encoded'] || item.content || item.summary || '';
+  const html = item.contentEncoded || item['content:encoded'] || item.content || item.summary || '';
   const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
   if (match) return match[1];
   return null;
+}
+
+function extractContent(item) {
+  const raw = item.contentEncoded || item['content:encoded'] || item.content || item.description || item.summary || '';
+  if (!raw || typeof raw !== 'string') return null;
+  const noScript = raw.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  return noScript.trim().slice(0, 150000) || null;
 }
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -264,11 +274,15 @@ app.get('/api/sources', (req, res) => {
 });
 
 app.get('/api/feeds', async (req, res) => {
-  if (cache && Date.now() - cacheTime < CACHE_TTL) {
+  const useCache = cache && Date.now() - cacheTime < CACHE_TTL;
+
+  if (useCache) {
     return res.json({ items: cache, cached: true, cachedAt: new Date(cacheTime).toISOString() });
   }
 
   const feedSources = SOURCES.filter(s => s.feed);
+  const allItems = [];
+  const failed = [];
 
   const results = await Promise.allSettled(
     feedSources.map(async source => {
@@ -284,14 +298,18 @@ app.get('/api/feeds', async (req, res) => {
           .replace(/\s+/g, ' ')
           .trim()
           .slice(0, 800) || null,
+        content: extractContent(item),
         image: extractImage(item),
       }));
     })
   );
 
-  const items = results
-    .filter(r => r.status === 'fulfilled')
-    .flatMap(r => r.value)
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') allItems.push(...r.value);
+    else failed.push(feedSources[i].name);
+  });
+
+  const items = allItems
     .filter(item => item.title && item.link)
     .sort((a, b) => {
       if (!a.date) return 1;
@@ -299,14 +317,43 @@ app.get('/api/feeds', async (req, res) => {
       return new Date(b.date) - new Date(a.date);
     });
 
-  const failed = results
-    .map((r, i) => r.status === 'rejected' ? feedSources[i].name : null)
-    .filter(Boolean);
-
   cache = items;
   cacheTime = Date.now();
 
-  res.json({ items, cached: false, failed });
+  res.json({ items, failed });
+});
+
+// Extract main article content from a URL (readability)
+app.get('/api/article', async (req, res) => {
+  const rawUrl = req.query.url;
+  if (!rawUrl || typeof rawUrl !== 'string') {
+    return res.status(400).json({ error: 'Missing url query' });
+  }
+  let url;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    return res.status(400).json({ error: 'Invalid url' });
+  }
+  if (!['http:', 'https:'].includes(url.protocol)) {
+    return res.status(400).json({ error: 'Only http(s) URLs allowed' });
+  }
+
+  try {
+    const dom = await JSDOM.fromURL(url.href, {
+      timeout: 10000,
+      userAgent: 'WTAF-Feed/1.0 (RSS Aggregator; +https://github.com/xujenna/wtaf)',
+    });
+    const reader = new Readability(dom.window.document);
+    const article = reader.parse();
+    if (!article || !article.content) {
+      return res.status(422).json({ error: 'Could not extract article content' });
+    }
+    res.json({ title: article.title, content: article.content });
+  } catch (err) {
+    console.error('Article extract failed:', url.href, err.message);
+    res.status(500).json({ error: 'Failed to fetch or parse article' });
+  }
 });
 
 const PORT = process.env.PORT || 3000;

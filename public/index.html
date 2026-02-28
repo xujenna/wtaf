@@ -134,11 +134,11 @@
 
     [data-theme="dark"] {
       --bg: #0c0923;
-      --surface: #0b0733;
+      --surface: #03011f;
       --border: #2a2a2a;
       --text: #e8e8e8;
-      --muted: #888;
-      --accent: #ff3c00;
+      --muted: #bebebe;
+      --accent: #ff5a28;
       --newsletter: #4ade80;
       --newsroom: #60a5fa;
       --podcast: #f59e0b;
@@ -274,7 +274,6 @@
     .filter-btn[data-topic="nyc"]      { --topic-color: #2dd4bf; }
     .filter-btn[data-topic="culture"] { --topic-color: #fb923c; }
     .filter-btn[data-topic="media"]    { --topic-color: #a78bfa; }
-    .filter-btn[data-topic="labor"]    { --topic-color: #fbbf24; }
     .filter-btn[data-topic="science"]  { --topic-color: #86efac; }
 
     .filter-meta {
@@ -331,6 +330,7 @@
       position: absolute;
       inset: 0;
       z-index: 1;
+      cursor: pointer;
     }
 
     .feed-item-inner {
@@ -392,7 +392,6 @@
     .topic-nyc      { background: rgba(45,212,191,0.12);  color: #2dd4bf; }
     .topic-culture  { background: rgba(251,146,60,0.12);  color: #fb923c; }
     .topic-media    { background: rgba(167,139,250,0.12); color: #a78bfa; }
-    .topic-labor    { background: rgba(251,191,36,0.12);  color: #fbbf24; }
     .topic-science  { background: rgba(134,239,172,0.12); color: #86efac; }
 
     .item-date {
@@ -409,8 +408,8 @@
       margin-bottom: 0.5rem;
     }
 
-    .item-title a { color: inherit; }
-    .feed-item:hover .item-title a { color: var(--accent); text-decoration: none; }
+    .item-title span { color: inherit; }
+    .feed-item:hover .item-title span { color: var(--accent); }
 
     .item-snippet {
       font-size: 1rem;
@@ -420,6 +419,97 @@
       -webkit-line-clamp: 5;
       -webkit-box-orient: vertical;
       overflow: hidden;
+    }
+
+    /* ── LIGHTBOX ── */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0,0,0,0.6);
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      box-sizing: border-box;
+    }
+    #lightbox.open { display: flex; }
+    #lightbox-backdrop {
+      position: absolute;
+      inset: 0;
+    }
+    #lightbox-box {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      height: 85vh;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    #lightbox-toolbar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.5rem 0.75rem 0.5rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.8rem;
+      font-family: 'Verlag', sans-serif;
+    }
+    #lightbox-open-tab {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    #lightbox-open-tab:hover { text-decoration: underline; }
+    #lightbox-paywall-note {
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+    #lightbox-close {
+      flex-shrink: 0;
+      width: 2rem;
+      height: 2rem;
+      border: none;
+      background: var(--border);
+      color: var(--text);
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    #lightbox-close:hover { background: var(--text); color: var(--bg); }
+    .lightbox-embed-blocked {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 2rem;
+      background: #fff;
+      color: #333;
+      font-family: 'Verlag', sans-serif;
+      font-size: 0.9rem;
+    }
+    .lightbox-embed-blocked a { color: var(--accent); text-decoration: none; }
+    .lightbox-embed-blocked a:hover { text-decoration: underline; }
+    #lightbox-iframe {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      border: none;
+      border-radius: 0 0 8px 8px;
+      background: #fff;
     }
 
     /* ── SIDEBAR ── */
@@ -444,14 +534,46 @@
     .source-list { list-style: none; margin-bottom: 1.5rem; }
 
     .source-list-item {
-      padding: 0.4rem 0;
-      border-bottom: 1px solid var(--border);
+      position: relative;
+      margin: 0 0.25rem;
+      padding: 0.5rem 1.75rem 0.5rem 0.6rem;
+      border-radius: 8px 8px 0 0;
       display: flex;
       align-items: flex-start;
       gap: 0.5rem;
+      box-shadow: 0 1px 0 var(--border);
+      transition: background 0.1s;
     }
+    .source-list-item:last-child { box-shadow: none; border-radius: 8px; }
+    .source-list-item:hover,
+    .source-list-item:has(+ .source-list-item:hover) {
+      box-shadow: none;
+    }
+    .source-list-item:hover { background: linen; }
+    [data-theme="dark"] .source-list-item:hover { background: var(--surface); }
+    .source-list-item { cursor: pointer; }
+    .source-list-item:hover .source-list-name span { color: var(--accent); }
+    .source-list-item-active .source-list-name span { color: var(--accent); }
 
-    .source-list-item:last-child { border-bottom: none; }
+    .source-list-item .source-remove {
+      position: absolute;
+      right: 0;
+      top: 0.35rem;
+      width: 1.25rem;
+      height: 1.25rem;
+      border: none;
+      background: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .source-list-item:hover .source-remove { opacity: 1; }
+    .source-list-item .source-remove:hover { color: var(--accent); }
 
     .source-dot {
       width: 6px;
@@ -465,8 +587,6 @@
       font-size: 0.83rem;
       font-weight: 600;
     }
-
-    .source-list-name a:hover { color: var(--accent); }
 
     .source-list-desc {
       font-size: 0.73rem;
@@ -536,13 +656,12 @@
 <!-- Topic filter -->
 <div class="filter-row">
   <button class="filter-btn active" data-topic="all"><span class="filter-btn-width" aria-hidden="true">All</span><span class="filter-btn-text">All</span></button>
-  <button class="filter-btn" data-topic="tech"><span class="filter-btn-width" aria-hidden="true">Tech</span><span class="filter-btn-text">Tech</span></button>
-  <button class="filter-btn" data-topic="politics"><span class="filter-btn-width" aria-hidden="true">Politics</span><span class="filter-btn-text">Politics</span></button>
   <button class="filter-btn" data-topic="nyc"><span class="filter-btn-width" aria-hidden="true">NYC</span><span class="filter-btn-text">NYC</span></button>
   <button class="filter-btn" data-topic="culture"><span class="filter-btn-width" aria-hidden="true">Culture</span><span class="filter-btn-text">Culture</span></button>
+  <button class="filter-btn" data-topic="tech"><span class="filter-btn-width" aria-hidden="true">Tech</span><span class="filter-btn-text">Tech</span></button>
   <button class="filter-btn" data-topic="media"><span class="filter-btn-width" aria-hidden="true">Media</span><span class="filter-btn-text">Media</span></button>
-  <button class="filter-btn" data-topic="labor"><span class="filter-btn-width" aria-hidden="true">Labor</span><span class="filter-btn-text">Labor</span></button>
   <button class="filter-btn" data-topic="science"><span class="filter-btn-width" aria-hidden="true">Science</span><span class="filter-btn-text">Science</span></button>
+  <button class="filter-btn" data-topic="politics"><span class="filter-btn-width" aria-hidden="true">Politics</span><span class="filter-btn-text">Politics</span></button>
   <span class="filter-meta">
     <span id="result-count"></span>
     <span id="last-updated"></span>
@@ -561,6 +680,22 @@
   </aside>
 </main>
 
+<div id="lightbox" aria-hidden="true">
+  <div id="lightbox-backdrop"></div>
+  <div id="lightbox-box">
+    <div id="lightbox-toolbar">
+      <a id="lightbox-open-tab" href="#" target="_blank" rel="noopener">Open in new tab</a>
+      <span id="lightbox-paywall-note">Hit a paywall? Open in new tab so your login applies.</span>
+      <button id="lightbox-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div id="lightbox-embed-blocked" class="lightbox-embed-blocked" style="display: none;">
+      <p>This site doesn’t allow in-app reading.</p>
+      <p><a id="lightbox-open-tab-fallback" href="#" target="_blank" rel="noopener">Open in new tab</a> to read the article.</p>
+    </div>
+    <iframe id="lightbox-iframe" title="Article"></iframe>
+  </div>
+</div>
+
 <script>
   const TOPICS = {
     tech:     { label: 'Tech',     keywords: ['ai', 'a.i.', 'artificial intelligence', 'software', ' app ', 'apple', 'google', 'meta ', 'twitter', 'tiktok', 'algorithm', 'data', 'privacy', 'hack', 'cyber', 'startup', 'crypto', 'bitcoin', 'blockchain', 'openai', 'chatgpt', 'musk', 'silicon', 'internet', 'digital', 'platform', 'social media', 'youtube', 'instagram', 'facebook', 'microsoft', 'amazon', 'surveillance', 'big tech', 'antitrust', 'tech ', 'technology', 'robot', 'automation', 'section 230', 'deepfake', 'sam altman', 'anthropic'] },
@@ -568,7 +703,6 @@
     nyc:      { label: 'NYC',      keywords: ['new york', 'nyc', 'brooklyn', 'manhattan', 'bronx', 'queens', 'staten island', 'subway', 'mta', 'new york city', 'the city'] },
     culture:  { label: 'Culture',  keywords: ['film', 'movie', 'music', 'art ', 'book', 'novel', ' tv ', 'comedy', 'celebrity', 'fashion', 'style', 'sports', 'nfl', 'nba', 'baseball', 'football', 'basketball', 'entertainment', 'hollywood', 'award', 'oscar', 'grammy', 'meme', 'viral', 'influencer', 'creator', 'fandom', 'culture', 'review', 'streaming show', 'podcast', 'album', 'tour', 'performance'] },
     media:    { label: 'Media',    keywords: ['newsletter', 'journalist', 'journalism', 'media ', 'newspaper', 'magazine', 'reporter', 'editorial', 'substack', 'cable news', 'msnbc', 'cnn', 'fox news', 'new york times', 'layoff', 'newsroom', 'publication', 'press', 'broadcast', 'anchor'] },
-    labor:    { label: 'Labor',    keywords: ['union', 'worker', 'labor', 'strike', 'wage', 'salary', 'employment', 'workplace', 'gig economy', 'freelance', 'organize', 'collective', 'layoff', 'fired', 'hired', 'job ', 'jobs ', 'work ', 'workers'] },
     science:  { label: 'Science',  keywords: ['science', 'research', 'study ', 'climate', 'environment', 'health', 'medicine', 'space', 'nasa', 'biology', 'chemistry', 'physics', 'discovery', 'species', 'ocean', 'planet', 'nature', 'animal', 'disease', 'drug', 'vaccine', 'gene', 'evolution'] },
   };
 
@@ -582,6 +716,13 @@
   const CAT_ORDER  = ['newsroom', 'newsletter', 'podcast', 'video'];
   const CAT_LABELS = { newsroom: 'Newsrooms', newsletter: 'Newsletters', podcast: 'Podcasts', video: 'Video' };
 
+  const EXCLUDE_KEYWORDS = [
+    'sports', 'nfl', 'nba', 'mlb', 'nhl', 'soccer', 'football', 'basketball', 'baseball', 'hockey',
+    'quarterback', 'touchdown', 'playoffs', 'super bowl', 'world series', 'olympics', 'athlete',
+    'celebrity', 'celebrities', 'kardashian', 'kanye', 'taylor swift', 'beyoncé', 'grammys', 'oscars',
+    'red carpet', 'hollywood', 'starring', 'box office', 'award show', 'emmy', 'golden globe',
+  ];
+
   function getTopics(item) {
     const text = ((item.title || '') + ' ' + (item.snippet || '')).toLowerCase();
     return Object.keys(TOPICS).filter(key =>
@@ -589,10 +730,29 @@
     );
   }
 
+  function isExcluded(item) {
+    const text = ((item.title || '') + ' ' + (item.snippet || '')).toLowerCase();
+    return EXCLUDE_KEYWORDS.some(kw => text.includes(kw));
+  }
+
   let allItems   = [];
   let allSources = [];
   let activeTopic  = 'all';
   let activeSource = '';
+
+  const HIDDEN_SOURCES_KEY = 'wtaf-hidden-sources';
+  function getHiddenSourceNames() {
+    try {
+      const j = localStorage.getItem(HIDDEN_SOURCES_KEY);
+      return j ? JSON.parse(j) : [];
+    } catch { return []; }
+  }
+  function setHiddenSourceNames(arr) {
+    localStorage.setItem(HIDDEN_SOURCES_KEY, JSON.stringify(arr));
+  }
+
+  const TRASH_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+
   // ── Theme
   const THEME_KEY = 'wtaf-theme';
   function getTheme() {
@@ -627,28 +787,72 @@
   }
 
   function buildSidebar() {
+    const hidden = getHiddenSourceNames();
     const section = document.getElementById('sidebar-sources');
-    section.innerHTML = CAT_ORDER.map(cat => {
-      const sources = allSources.filter(s => s.category === cat);
+
+    const sourceRow = (name, desc, cat) => {
+      const active = activeSource === name ? ' source-list-item-active' : '';
+      return `
+        <li class="source-list-item${active}" data-source-name="${escHtml(name)}" role="button" tabindex="0">
+          <span class="source-dot" style="background:${CAT_COLORS[cat]}"></span>
+          <div>
+            <div class="source-list-name"><span>${escHtml(name)}</span></div>
+            <div class="source-list-desc">${desc}</div>
+          </div>
+          <button type="button" class="source-remove" title="Remove source" aria-label="Remove source">${TRASH_ICON}</button>
+        </li>
+      `;
+    };
+
+    const html = CAT_ORDER.map(cat => {
+      const sources = allSources.filter(s => s.category === cat && !hidden.includes(s.name));
       if (!sources.length) return '';
       return `
         <div>
           <div class="sidebar-heading">${CAT_LABELS[cat]}</div>
           <ul class="source-list">
-            ${sources.map(s => `
-              <li class="source-list-item">
-                <span class="source-dot" style="background:${CAT_COLORS[cat]}"></span>
-                <div>
-                  <div class="source-list-name"><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a></div>
-                  <div class="source-list-desc">${s.description}</div>
-                </div>
-              </li>
-            `).join('')}
+            ${sources.map(s => sourceRow(s.name, s.description, cat)).join('')}
           </ul>
         </div>
       `;
     }).join('');
+    section.innerHTML = html;
   }
+
+  document.getElementById('sidebar-sources').addEventListener('click', (e) => {
+    const removeBtn = e.target.closest('.source-remove');
+    if (removeBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const item = removeBtn.closest('.source-list-item');
+      const name = item?.dataset.sourceName;
+      if (name) {
+        const list = getHiddenSourceNames();
+        if (!list.includes(name)) {
+          setHiddenSourceNames([...list, name]);
+          if (activeSource === name) activeSource = '';
+          buildSidebar();
+          renderItems();
+        }
+      }
+      return;
+    }
+    const item = e.target.closest('.source-list-item');
+    if (item) {
+      e.preventDefault();
+      const name = item.dataset.sourceName;
+      if (name) filterBySource(name);
+    }
+  });
+
+  document.getElementById('sidebar-sources').addEventListener('keydown', (e) => {
+    if (e.target.closest('.source-remove')) return;
+    const item = e.target.closest('.source-list-item');
+    if (!item || (e.key !== 'Enter' && e.key !== ' ')) return;
+    e.preventDefault();
+    const name = item.dataset.sourceName;
+    if (name) filterBySource(name);
+  });
 
   // ── Fetch
   async function loadFeed(force = false) {
@@ -663,9 +867,13 @@
     errMsg.style.display  = 'none';
 
     try {
-      const res  = await fetch(force ? '/api/feeds?bust=' + Date.now() : '/api/feeds');
+      const url = force ? '/api/feeds?bust=' + Date.now() : '/api/feeds';
+      const res  = await fetch(url);
       const data = await res.json();
       allItems   = data.items || [];
+
+      const hidden = getHiddenSourceNames();
+      allItems = allItems.filter(item => !hidden.includes(item.source));
 
       document.getElementById('last-updated').textContent =
         `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
@@ -675,7 +883,7 @@
       if (data.failed?.length) {
         const notice = document.createElement('div');
         notice.id = 'failed-notice';
-        notice.textContent = `Couldn't reach: ${data.failed.join(', ')}`;
+        notice.textContent = 'Couldn\'t reach: ' + data.failed.join(', ');
         document.querySelector('main').before(notice);
       }
 
@@ -695,9 +903,10 @@
       `<span class="topic-tag topic-${t}" onclick="filterByTopic('${t}')" title="Filter to ${TOPICS[t].label}">${TOPICS[t].label}</span>`
     ).join('');
 
+    const linkEsc = escHtml(item.link).replace(/"/g, '&quot;');
     return `
-      <article class="feed-item">
-        <a class="feed-item-link" href="${item.link}" target="_blank" rel="noopener" aria-label="Read ${escHtml(item.title).replace(/"/g, '&quot;')}"></a>
+      <article class="feed-item" data-item-link="${linkEsc}">
+        <div class="feed-item-link" role="button" tabindex="0" data-open-lightbox aria-label="Read article"></div>
         <div class="feed-item-inner">
           <div class="feed-item-text">
             <div class="item-meta">
@@ -710,7 +919,7 @@
               ${item.date ? `<span class="item-date">${formatDate(item.date)}</span>` : ''}
             </div>
             <div class="item-title">
-              <a href="${item.link}" target="_blank" rel="noopener">${escHtml(item.title)}</a>
+              <span>${escHtml(item.title)}</span>
             </div>
             ${item.snippet ? `<div class="item-snippet">${escHtml(item.snippet)}</div>` : ''}
           </div>
@@ -721,6 +930,7 @@
 
   function renderItems() {
     const filtered = allItems.filter(item => {
+      if (isExcluded(item)) return false;
       if (activeSource && item.source !== activeSource) return false;
       if (activeTopic !== 'all' && !getTopics(item).includes(activeTopic)) return false;
       return true;
@@ -758,6 +968,7 @@
   // ── Filter handlers
   function filterBySource(name) {
     activeSource = activeSource === name ? '' : name;
+    buildSidebar();
     renderItems();
   }
 
@@ -776,6 +987,74 @@
       activeTopic = btn.dataset.topic;
       renderItems();
     });
+  });
+
+  // ── Lightbox
+  const lightbox = document.getElementById('lightbox');
+  const lightboxIframe = document.getElementById('lightbox-iframe');
+  const lightboxEmbedBlocked = document.getElementById('lightbox-embed-blocked');
+  const lightboxClose = document.getElementById('lightbox-close');
+  const lightboxBackdrop = document.getElementById('lightbox-backdrop');
+
+  const EMBED_BLOCKED_HOSTS = ['dropsitenews.com', 'www.dropsitenews.com'];
+
+  function openLightbox(url) {
+    let host = '';
+    try { host = new URL(url).hostname.toLowerCase(); } catch (_) {}
+    const blocked = EMBED_BLOCKED_HOSTS.some(h => host === h || host.endsWith('.' + h));
+
+    const openTabLink = document.getElementById('lightbox-open-tab');
+    const openTabFallback = document.getElementById('lightbox-open-tab-fallback');
+    openTabLink.href = url;
+    openTabFallback.href = url;
+
+    if (blocked) {
+      lightboxIframe.src = 'about:blank';
+      lightboxIframe.style.display = 'none';
+      lightboxEmbedBlocked.style.display = 'flex';
+    } else {
+      lightboxIframe.src = url;
+      lightboxIframe.style.display = 'block';
+      lightboxEmbedBlocked.style.display = 'none';
+    }
+    lightbox.classList.add('open');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    lightboxIframe.src = '';
+    lightboxIframe.style.display = 'block';
+    lightboxEmbedBlocked.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('items').addEventListener('click', (e) => {
+    const trigger = e.target.closest('.feed-item-link[data-open-lightbox]');
+    if (!trigger) return;
+    e.preventDefault();
+    const article = trigger.closest('.feed-item');
+    const url = article?.dataset.itemLink;
+    if (url) openLightbox(url);
+  });
+
+  document.getElementById('items').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const trigger = e.target.closest('.feed-item-link[data-open-lightbox]');
+    if (!trigger) return;
+    e.preventDefault();
+    const article = trigger.closest('.feed-item');
+    const url = article?.dataset.itemLink;
+    if (url) openLightbox(url);
+  });
+
+  lightboxClose.addEventListener('click', closeLightbox);
+  lightboxBackdrop.addEventListener('click', closeLightbox);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
   });
 
   // ── Helpers
