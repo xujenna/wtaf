@@ -552,8 +552,9 @@
     .source-list-item:hover { background: linen; }
     [data-theme="dark"] .source-list-item:hover { background: var(--surface); }
     .source-list-item { cursor: pointer; }
-    .source-list-item:hover .source-list-name span { color: var(--accent); }
-    .source-list-item-active .source-list-name span { color: var(--accent); }
+    .source-list-name a { color: inherit; text-decoration: none; }
+    .source-list-name a:hover { color: var(--accent); }
+    .source-list-item-active .source-list-name a { color: var(--accent); }
 
     .source-list-item .source-remove {
       position: absolute;
@@ -790,13 +791,13 @@
     const hidden = getHiddenSourceNames();
     const section = document.getElementById('sidebar-sources');
 
-    const sourceRow = (name, desc, cat) => {
+    const sourceRow = (name, desc, url, cat) => {
       const active = activeSource === name ? ' source-list-item-active' : '';
       return `
         <li class="source-list-item${active}" data-source-name="${escHtml(name)}" role="button" tabindex="0">
           <span class="source-dot" style="background:${CAT_COLORS[cat]}"></span>
           <div>
-            <div class="source-list-name"><span>${escHtml(name)}</span></div>
+            <div class="source-list-name"><a href="${escHtml(url)}" target="_blank" rel="noopener">${escHtml(name)}</a></div>
             <div class="source-list-desc">${desc}</div>
           </div>
           <button type="button" class="source-remove" title="Remove source" aria-label="Remove source">${TRASH_ICON}</button>
@@ -811,7 +812,7 @@
         <div>
           <div class="sidebar-heading">${CAT_LABELS[cat]}</div>
           <ul class="source-list">
-            ${sources.map(s => sourceRow(s.name, s.description, cat)).join('')}
+            ${sources.map(s => sourceRow(s.name, s.description, s.url, cat)).join('')}
           </ul>
         </div>
       `;
@@ -837,6 +838,7 @@
       }
       return;
     }
+    if (e.target.closest('.source-list-name a')) return;
     const item = e.target.closest('.source-list-item');
     if (item) {
       e.preventDefault();
