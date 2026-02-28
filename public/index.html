@@ -842,6 +842,16 @@
     localStorage.setItem(CUSTOM_SOURCES_KEY, JSON.stringify(arr));
   }
 
+  const READ_ITEMS_KEY = 'wtaf-read-items';
+  function getReadItems() {
+    try { return new Set(JSON.parse(localStorage.getItem(READ_ITEMS_KEY) || '[]')); } catch { return new Set(); }
+  }
+  function markAsRead(url) {
+    const read = getReadItems();
+    read.add(url);
+    localStorage.setItem(READ_ITEMS_KEY, JSON.stringify([...read]));
+  }
+
   const TRASH_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
 
   // ── Theme
@@ -1105,7 +1115,9 @@
   }
 
   function renderItems() {
+    const read = getReadItems();
     const filtered = allItems.filter(item => {
+      if (read.has(item.link)) return false;
       if (isExcluded(item)) return false;
       if (activeSource && item.source !== activeSource) return false;
       if (activeTopic !== 'all' && !getTopics(item).includes(activeTopic)) return false;
@@ -1209,6 +1221,9 @@
 
   async function openLightbox(url) {
     currentLightboxUrl = url;
+    markAsRead(url);
+    allItems = allItems.filter(i => i.link !== url);
+    renderItems();
     document.getElementById('lightbox-open-tab').href = url;
     document.getElementById('lightbox-open-tab-fallback').href = url;
 
