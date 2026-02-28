@@ -467,6 +467,17 @@
       text-decoration: none;
     }
     #lightbox-open-tab:hover { text-decoration: underline; }
+    #lightbox-reader-view-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: var(--accent);
+      font: inherit;
+      font-size: 0.8rem;
+      font-family: 'Verlag', sans-serif;
+    }
+    #lightbox-reader-view-btn:hover { text-decoration: underline; }
     #lightbox-paywall-note {
       color: var(--muted);
       font-size: 0.72rem;
@@ -698,7 +709,10 @@
   <div id="lightbox-backdrop"></div>
   <div id="lightbox-box">
     <div id="lightbox-toolbar">
-      <a id="lightbox-open-tab" href="#" target="_blank" rel="noopener">Open in new tab</a>
+      <div style="display:flex;gap:0.75rem;align-items:center;">
+        <a id="lightbox-open-tab" href="#" target="_blank" rel="noopener">Open in new tab</a>
+        <button id="lightbox-reader-view-btn" type="button" style="display:none;">Reader view</button>
+      </div>
       <span id="lightbox-paywall-note">Hit a paywall? Open in new tab so your login applies.</span>
       <button id="lightbox-close" type="button" aria-label="Close">×</button>
     </div>
@@ -1021,6 +1035,8 @@
   const KNOWN_BLOCKED = new Set(['dropsitenews.com', 'apod.nasa.gov', 'technologyreview.com', 'citationneeded.news', 'linkinbio.substack.com', 'usermag.co', 'deezlinks.com']);
   // Per-hostname cache: hostname → Promise<boolean> (true = can embed)
   const embedCache = new Map();
+  const lightboxReaderViewBtn = document.getElementById('lightbox-reader-view-btn');
+  let currentLightboxUrl = '';
 
   function checkCanEmbed(url) {
     let host = '';
@@ -1040,6 +1056,10 @@
   }
 
   function showReaderView(url) {
+    lightboxReaderViewBtn.style.display = 'none';
+    lightboxIframe.src = 'about:blank';
+    lightboxIframe.style.display = 'none';
+    lightboxEmbedBlocked.style.display = 'block';
     const readerLoading = document.getElementById('lightbox-reader-loading');
     const readerError   = document.getElementById('lightbox-reader-error');
     const readerContent = document.getElementById('lightbox-reader-content');
@@ -1062,10 +1082,12 @@
   }
 
   async function openLightbox(url) {
+    currentLightboxUrl = url;
     document.getElementById('lightbox-open-tab').href = url;
     document.getElementById('lightbox-open-tab-fallback').href = url;
 
     // Show loading state immediately while the embed check runs
+    lightboxReaderViewBtn.style.display = 'none';
     lightboxIframe.src = 'about:blank';
     lightboxIframe.style.display = 'none';
     lightboxEmbedBlocked.style.display = 'block';
@@ -1081,6 +1103,7 @@
       lightboxEmbedBlocked.style.display = 'none';
       lightboxIframe.style.display       = 'block';
       lightboxIframe.src                 = url;
+      lightboxReaderViewBtn.style.display = 'inline';
     } else {
       showReaderView(url);
     }
@@ -1092,9 +1115,13 @@
     lightboxIframe.src = '';
     lightboxIframe.style.display = 'block';
     lightboxEmbedBlocked.style.display = 'none';
+    lightboxReaderViewBtn.style.display = 'none';
     document.getElementById('lightbox-reader-content').innerHTML = '';
     document.body.style.overflow = '';
+    currentLightboxUrl = '';
   }
+
+  lightboxReaderViewBtn.addEventListener('click', () => showReaderView(currentLightboxUrl));
 
   document.getElementById('items').addEventListener('click', (e) => {
     const trigger = e.target.closest('.feed-item-link[data-open-lightbox]');
