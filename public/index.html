@@ -553,7 +553,7 @@
     [data-theme="dark"] .source-list-item:hover { background: var(--surface); }
     .source-list-item { cursor: pointer; }
     .source-list-name a { color: inherit; text-decoration: none; }
-    .source-list-name a:hover { color: var(--accent); }
+    .source-list-item:hover .source-list-name a { color: var(--accent); }
     .source-list-item-active .source-list-name a { color: var(--accent); }
 
     .source-list-item .source-remove {
@@ -998,7 +998,7 @@
   const lightboxClose = document.getElementById('lightbox-close');
   const lightboxBackdrop = document.getElementById('lightbox-backdrop');
 
-  const EMBED_BLOCKED_HOSTS = ['dropsitenews.com', 'www.dropsitenews.com'];
+  const EMBED_BLOCKED_HOSTS = ['dropsitenews.com', 'www.dropsitenews.com', 'apod.nasa.gov', 'technologyreview.com', 'www.technologyreview.com'];
 
   function openLightbox(url) {
     let host = '';
