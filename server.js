@@ -257,6 +257,27 @@ const SOURCES = [
     description: "New York Magazine's essential women's interest and culture vertical",
     category: 'newsroom',
   },
+  {
+    name: 'Vulture',
+    url: 'https://www.vulture.com',
+    feed: 'https://www.vulture.com/feeds/all.rss',
+    description: "New York Magazine's entertainment and culture vertical",
+    category: 'newsroom',
+  },
+  {
+    name: 'Intelligencer',
+    url: 'https://nymag.com/intelligencer',
+    feed: 'https://nymag.com/intelligencer/feeds/all.rss',
+    description: "New York Magazine's politics and news vertical",
+    category: 'newsroom',
+  },
+  {
+    name: 'Grub Street',
+    url: 'https://www.grubstreet.com',
+    feed: 'https://www.grubstreet.com/feeds/all.rss',
+    description: "New York Magazine's food and restaurant vertical",
+    category: 'newsroom',
+  },
 ];
 
 let cache = null;
