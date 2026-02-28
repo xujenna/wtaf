@@ -267,7 +267,7 @@ const SOURCES = [
   {
     name: 'Intelligencer',
     url: 'https://nymag.com/intelligencer',
-    feed: 'https://nymag.com/intelligencer/feeds/flipboard.rss',
+    feed: 'https://feeds.feedburner.com/nymag/intelligencer',
     description: "New York Magazine's politics and news vertical",
     category: 'newsroom',
   },
