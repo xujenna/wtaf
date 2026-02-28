@@ -490,19 +490,32 @@
     #lightbox-close:hover { background: var(--text); color: var(--bg); }
     .lightbox-embed-blocked {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 2rem;
+      overflow-y: auto;
       background: #fff;
       color: #333;
-      font-family: 'Verlag', sans-serif;
-      font-size: 0.9rem;
+      min-height: 0;
     }
-    .lightbox-embed-blocked a { color: var(--accent); text-decoration: none; }
-    .lightbox-embed-blocked a:hover { text-decoration: underline; }
+    #lightbox-reader {
+      max-width: 660px;
+      margin: 0 auto;
+      padding: 2rem 2.5rem;
+      font-size: 1rem;
+      line-height: 1.75;
+    }
+    #lightbox-reader-loading, #lightbox-reader-error {
+      text-align: center;
+      padding: 4rem 2rem;
+      font-family: 'Verlag', sans-serif;
+      color: #888;
+    }
+    #lightbox-reader-error a { color: var(--accent); text-decoration: none; }
+    #lightbox-reader-error a:hover { text-decoration: underline; }
+    #lightbox-reader-content img { max-width: 100%; height: auto; display: block; margin: 1rem 0; }
+    #lightbox-reader-content h1, #lightbox-reader-content h2, #lightbox-reader-content h3 { font-family: 'GT Super', Georgia, serif; margin: 1.5rem 0 0.5rem; line-height: 1.3; }
+    #lightbox-reader-content p { margin: 0 0 1rem; }
+    #lightbox-reader-content a { color: var(--accent); }
+    #lightbox-reader-content figure { margin: 1rem 0; }
+    #lightbox-reader-content figcaption { font-size: 0.8rem; color: #888; margin-top: 0.35rem; }
     #lightbox-iframe {
       flex: 1;
       width: 100%;
@@ -690,8 +703,14 @@
       <button id="lightbox-close" type="button" aria-label="Close">×</button>
     </div>
     <div id="lightbox-embed-blocked" class="lightbox-embed-blocked" style="display: none;">
-      <p>This site doesn’t allow in-app reading.</p>
-      <p><a id="lightbox-open-tab-fallback" href="#" target="_blank" rel="noopener">Open in new tab</a> to read the article.</p>
+      <div id="lightbox-reader">
+        <div id="lightbox-reader-loading">Loading article…</div>
+        <div id="lightbox-reader-error" style="display:none;">
+          <p>Couldn’t load article content.</p>
+          <p><a id="lightbox-open-tab-fallback" href="#" target="_blank" rel="noopener">Open in new tab</a> to read it.</p>
+        </div>
+        <div id="lightbox-reader-content" style="display:none;"></div>
+      </div>
     </div>
     <iframe id="lightbox-iframe" title="Article"></iframe>
   </div>
@@ -1013,7 +1032,26 @@
     if (blocked) {
       lightboxIframe.src = 'about:blank';
       lightboxIframe.style.display = 'none';
-      lightboxEmbedBlocked.style.display = 'flex';
+      lightboxEmbedBlocked.style.display = 'block';
+      const readerLoading = document.getElementById('lightbox-reader-loading');
+      const readerError   = document.getElementById('lightbox-reader-error');
+      const readerContent = document.getElementById('lightbox-reader-content');
+      readerLoading.style.display = 'block';
+      readerError.style.display   = 'none';
+      readerContent.style.display = 'none';
+      readerContent.innerHTML     = '';
+      fetch('/api/article?url=' + encodeURIComponent(url))
+        .then(r => r.json())
+        .then(data => {
+          if (!data.content) throw new Error('no content');
+          readerContent.innerHTML     = data.content;
+          readerLoading.style.display = 'none';
+          readerContent.style.display = 'block';
+        })
+        .catch(() => {
+          readerLoading.style.display = 'none';
+          readerError.style.display   = 'block';
+        });
     } else {
       lightboxIframe.src = url;
       lightboxIframe.style.display = 'block';
@@ -1030,6 +1068,7 @@
     lightboxIframe.src = '';
     lightboxIframe.style.display = 'block';
     lightboxEmbedBlocked.style.display = 'none';
+    document.getElementById('lightbox-reader-content').innerHTML = '';
     document.body.style.overflow = '';
   }
 
