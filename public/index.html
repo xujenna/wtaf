@@ -1034,7 +1034,7 @@
       allItems = allItems.filter(item => !hidden.includes(item.source));
 
       // Merge user-added custom sources
-      const customSources = getCustomSources();
+      const customSources = getCustomSources().filter(s => s.feedUrl);
       if (customSources.length) {
         const customResults = await Promise.allSettled(
           customSources.map(s => fetch('/api/feed?url=' + encodeURIComponent(s.feedUrl)).then(r => r.json()))
@@ -1307,7 +1307,8 @@
   }
 
   function escHtml(str) {
-    return str
+    if (str == null) return '';
+    return String(str)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
