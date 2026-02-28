@@ -48,13 +48,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const SOURCES = [
   {
-    name: 'Today In Tabs',
-    url: 'https://www.todayintabs.com',
-    feed: 'https://www.todayintabs.com/feed',
-    description: "Rusty Foster's unmissable daily link roundup",
-    category: 'newsletter',
-  },
-  {
     name: 'Platformer',
     url: 'https://www.platformer.news',
     feed: 'https://www.platformer.news/feed/',
@@ -90,13 +83,6 @@ const SOURCES = [
     category: 'newsletter',
   },
   {
-    name: 'Status',
-    url: 'https://www.semafor.com/newsletters/status',
-    feed: 'https://www.semafor.com/rss/status.xml',
-    description: "Oliver Darcy's unmissable media reporting",
-    category: 'newsletter',
-  },
-  {
     name: 'Garbage Day',
     url: 'https://www.garbageday.email',
     feed: 'https://rss.beehiiv.com/feeds/owMwaGYU36.xml',
@@ -118,27 +104,6 @@ const SOURCES = [
     category: 'newsroom',
   },
   {
-    name: 'Search Engine',
-    url: 'https://searchengine.show',
-    feed: 'https://feeds.simplecast.com/y1FkiSrY',
-    description: "PJ Vogt's super fun podcast",
-    category: 'podcast',
-  },
-  {
-    name: 'Read Max',
-    url: 'https://www.readmax.online',
-    feed: 'https://www.readmax.online/feed',
-    description: 'Max Read on media and the internet',
-    category: 'newsletter',
-  },
-  {
-    name: 'Never Post',
-    url: 'https://neverpo.st',
-    feed: 'https://feeds.acast.com/public/shows/never-post',
-    description: 'Podcast specializing in all things extremely online',
-    category: 'podcast',
-  },
-  {
     name: '1-900-HOTDOG',
     url: 'https://www.1900hotdog.com',
     feed: 'https://www.1900hotdog.com/feed/',
@@ -153,24 +118,10 @@ const SOURCES = [
     category: 'newsroom',
   },
   {
-    name: 'Howtown',
-    url: 'https://www.howtown.com',
-    feed: 'https://www.howtown.com/feed/',
-    description: 'Delightful science journalism from former Vox and NPR journalists',
-    category: 'newsletter',
-  },
-  {
     name: 'The Handbasket',
     url: 'https://thehandbasket.substack.com',
     feed: 'https://thehandbasket.substack.com/feed',
     description: "Marisa Kabas on Trump administration skullduggery",
-    category: 'newsletter',
-  },
-  {
-    name: '65,000',
-    url: 'https://65000.substack.com',
-    feed: 'https://65000.substack.com/feed',
-    description: 'Niche online creative communities',
     category: 'newsletter',
   },
   {
@@ -195,20 +146,6 @@ const SOURCES = [
     category: 'newsroom',
   },
   {
-    name: 'Cool Zone Media',
-    url: 'https://coolzonemedia.com',
-    feed: 'https://feeds.megaphone.fm/behindthebastards',
-    description: "Robert Evans' podcast network",
-    category: 'podcast',
-  },
-  {
-    name: 'Some More News',
-    url: 'https://www.somemorenews.com',
-    feed: 'https://www.somemorenews.com/feed/',
-    description: "Cody Johnston's funny and insightful news teardowns",
-    category: 'podcast',
-  },
-  {
     name: 'Tech Dirt',
     url: 'https://www.techdirt.com',
     feed: 'https://www.techdirt.com/feed/',
@@ -220,20 +157,6 @@ const SOURCES = [
     url: 'https://www.readtpa.com',
     feed: 'https://www.readtpa.com/feed',
     description: 'Parker Molloy on news and politics',
-    category: 'newsletter',
-  },
-  {
-    name: 'Spitfire News',
-    url: 'https://spitfirenews.substack.com',
-    feed: 'https://spitfirenews.substack.com/feed',
-    description: "Kat Tenbarge's post-Me Too era coverage",
-    category: 'newsletter',
-  },
-  {
-    name: 'Local News International',
-    url: 'https://localnewsinternational.substack.com',
-    feed: 'https://localnewsinternational.substack.com/feed',
-    description: "Dave Jorgenson's newsletter and video series",
     category: 'newsletter',
   },
   {
