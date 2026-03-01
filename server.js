@@ -315,22 +315,28 @@ app.get('/api/feeds', async (req, res) => {
   res.json({ items, failed });
 });
 
-// Generate a cable-news-style ticker summary of today's headlines
+// Extract meaningful search keywords from a headline (used as ticker fallback)
+function extractKeywords(title) {
+  const stop = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','was','are','were','be','been','have','has','had','do','does','did','will','would','could','should','may','might','can','its','it','this','that','these','those','over','into','about','after','before','as','if','he','she','they','we','you','new','says','after','amid','over','what']);
+  return title.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3 && !stop.has(w)).slice(0, 4);
+}
+
+// Generate a cable-news-style ticker: one summary per topic, with keywords for filtering
 app.get('/api/ticker', async (req, res) => {
   if (tickerCache && Date.now() - tickerCacheTime < TICKER_TTL) {
-    return res.json({ text: tickerCache, cached: true });
+    return res.json({ topics: tickerCache, cached: true });
   }
 
   // Need feed cache to exist; if not, tell the client to retry later
-  if (!cache) return res.json({ text: null });
+  if (!cache) return res.json({ topics: null });
 
   // Use most recent items from whatever's in the cache
   const items = cache.slice(0, 30);
-  if (!items.length) return res.json({ text: null });
+  if (!items.length) return res.json({ topics: null });
 
   const titles = items.map(i => i.title).join('\n');
 
-  let text;
+  let topics;
   if (process.env.ANTHROPIC_API_KEY) {
     try {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -342,28 +348,32 @@ app.get('/api/ticker', async (req, res) => {
         },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 300,
+          max_tokens: 600,
           messages: [{
             role: 'user',
-            content: `You are writing a cable news ticker. Given these headlines, write 5–8 punchy ticker phrases separated by " ◆ ". Each phrase should be 5–9 words, factual and urgent in tone. Do not use "BREAKING". Output only the ticker text, nothing else.\n\nHeadlines:\n${titles}`,
+            content: `Group these headlines into 5–7 broad topics. For each topic write one punchy 6–10 word summary. Return ONLY a JSON array, no markdown, no explanation:\n[{"summary":"...","keywords":["term1","term2","term3"]}]\nKeywords (2–5 per topic) should be the best search terms to find related headlines.\n\nHeadlines:\n${titles}`,
           }],
         }),
       });
       const data = await response.json();
-      text = data?.content?.[0]?.text?.trim() || null;
+      const raw = data?.content?.[0]?.text?.trim().replace(/^```json\s*|\s*```$/g, '') || '';
+      topics = JSON.parse(raw);
     } catch (err) {
       console.error('Ticker Claude call failed:', err.message);
     }
   }
 
-  // Fallback: use the raw titles formatted as ticker phrases
-  if (!text) {
-    text = items.slice(0, 8).map(i => i.title.replace(/\s+/g, ' ').trim()).join(' ◆ ');
+  // Fallback: one item per headline
+  if (!topics) {
+    topics = items.slice(0, 8).map(item => ({
+      summary: item.title.replace(/\s+/g, ' ').trim(),
+      keywords: extractKeywords(item.title),
+    }));
   }
 
-  tickerCache = text;
+  tickerCache = topics;
   tickerCacheTime = Date.now();
-  res.json({ text });
+  res.json({ topics });
 });
 
 // Check whether a URL can be embedded in an iframe

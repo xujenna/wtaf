@@ -243,18 +243,31 @@
       position: relative;
     }
 
+    #ticker-bar:hover #ticker-track { animation-play-state: paused; }
+
     #ticker-track {
       display: inline-block;
       white-space: nowrap;
-      padding-left: 100%;
       will-change: transform;
       animation: ticker-scroll linear infinite;
     }
 
     @keyframes ticker-scroll {
       from { transform: translateX(0); }
-      to   { transform: translateX(-100%); }
+      to   { transform: translateX(-50%); }
     }
+
+    .ticker-item {
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .ticker-item:hover { color: var(--accent); }
+    .ticker-item.ticker-active {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .ticker-sep { opacity: 0.45; margin: 0 0.3em; }
 
     .filter-row {
       padding: 0.4rem 2rem 0.75rem;
@@ -1196,29 +1209,64 @@
   }
 
   // ── Ticker
+  let tickerFilter = null;
+
   async function loadTicker() {
     try {
       const res = await fetch('/api/ticker');
       if (!res.ok) return;
-      const { text } = await res.json();
-      if (!text) return;
-
-      const bar   = document.getElementById('ticker-bar');
-      const track = document.getElementById('ticker-track');
-
-      // Text with a separator so the loop looks seamless
-      const content = text + ' ◆ ' + text + ' ◆ ';
-      track.textContent = content;
-
-      // Show the bar first so the browser lays it out and scrollWidth is real,
-      // then measure and set the animation duration in the next frame.
-      bar.style.display = 'flex';
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        const speed    = 120; // px/s
-        const distance = track.scrollWidth; // includes padding-left: 100%
-        track.style.animationDuration = (distance / speed).toFixed(1) + 's';
-      }));
+      const { topics } = await res.json();
+      if (!topics?.length) return;
+      renderTicker(topics);
     } catch { /* ticker is decorative, fail silently */ }
+  }
+
+  function renderTicker(topics) {
+    const bar   = document.getElementById('ticker-bar');
+    const track = document.getElementById('ticker-track');
+    track.innerHTML = '';
+
+    function buildSet() {
+      topics.forEach((t, i) => {
+        if (i > 0) {
+          const sep = document.createElement('span');
+          sep.className = 'ticker-sep';
+          sep.textContent = ' ◆ ';
+          sep.setAttribute('aria-hidden', 'true');
+          track.appendChild(sep);
+        }
+        const span = document.createElement('span');
+        span.className = 'ticker-item';
+        span.textContent = t.summary;
+        span.addEventListener('click', () => setTickerFilter(t));
+        track.appendChild(span);
+      });
+      // trailing separator between the two copies
+      const sep = document.createElement('span');
+      sep.className = 'ticker-sep';
+      sep.textContent = ' ◆ ';
+      sep.setAttribute('aria-hidden', 'true');
+      track.appendChild(sep);
+    }
+
+    // Double the content so the animation loops seamlessly (0 → -50%)
+    buildSet();
+    buildSet();
+
+    bar.style.display = 'flex';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      // scrollWidth = 2× one copy; animate across one copy at 100px/s
+      track.style.animationDuration = (track.scrollWidth / 2 / 100).toFixed(1) + 's';
+    }));
+  }
+
+  function setTickerFilter(topic) {
+    const isActive = tickerFilter?.summary === topic.summary;
+    tickerFilter = isActive ? null : topic;
+    document.querySelectorAll('.ticker-item').forEach(el => {
+      el.classList.toggle('ticker-active', !isActive && el.textContent === topic.summary);
+    });
+    renderItems();
   }
 
   // ── Render
@@ -1270,6 +1318,11 @@
         if (isExcluded(item)) return false;
         if (activeSource && item.source !== activeSource) return false;
         if (activeTopic !== 'all' && !getTopics(item).includes(activeTopic)) return false;
+        if (tickerFilter) {
+          const kws = tickerFilter.keywords.map(k => k.toLowerCase());
+          const hay = (item.title + ' ' + (item.snippet || '')).toLowerCase();
+          if (!kws.some(k => hay.includes(k))) return false;
+        }
         return true;
       });
     }
@@ -1297,6 +1350,8 @@
 
   function filterByTopic(topic) {
     viewSaved = false;
+    tickerFilter = null;
+    document.querySelectorAll('.ticker-item').forEach(el => el.classList.remove('ticker-active'));
     document.getElementById('saved-filter-btn').classList.remove('active');
     document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
     const btn = document.querySelector(`.filter-btn[data-topic="${topic}"]`);
@@ -1308,6 +1363,8 @@
   document.querySelectorAll('.filter-btn[data-topic]').forEach(btn => {
     btn.addEventListener('click', () => {
       viewSaved = false;
+      tickerFilter = null;
+      document.querySelectorAll('.ticker-item').forEach(el => el.classList.remove('ticker-active'));
       document.getElementById('saved-filter-btn').classList.remove('active');
       document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
