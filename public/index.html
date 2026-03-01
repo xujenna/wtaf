@@ -1210,14 +1210,17 @@
 
   // ── Ticker
   let tickerFilter = null;
+  let articleLabels = {}; // link → [topic, …] — populated by Claude via /api/ticker
 
   async function loadTicker() {
     try {
       const res = await fetch('/api/ticker');
       if (!res.ok) return;
-      const { topics } = await res.json();
+      const { topics, labels } = await res.json();
+      if (labels) articleLabels = labels;
       if (!topics?.length) return;
       renderTicker(topics);
+      renderItems(); // re-render now that labels are available
     } catch { /* ticker is decorative, fail silently */ }
   }
 
@@ -1317,7 +1320,11 @@
         if (hidden.has(item.link)) return false;
         if (isExcluded(item)) return false;
         if (activeSource && item.source !== activeSource) return false;
-        if (activeTopic !== 'all' && !getTopics(item).includes(activeTopic)) return false;
+        if (activeTopic !== 'all') {
+          const claudeLabels = articleLabels[item.link];
+          const inTopic = claudeLabels ? claudeLabels.includes(activeTopic) : getTopics(item).includes(activeTopic);
+          if (!inTopic) return false;
+        }
         if (tickerFilter) {
           if (!tickerFilter.links?.includes(item.link)) return false;
         }

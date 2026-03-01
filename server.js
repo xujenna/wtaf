@@ -316,20 +316,20 @@ app.get('/api/feeds', async (req, res) => {
   res.json({ items, failed });
 });
 
-// Generate a cable-news-style ticker: one summary per topic, with exact article links for filtering
+// Generate ticker topics and classify articles into filter labels in one Claude call
 app.get('/api/ticker', async (req, res) => {
   if (tickerCache && Date.now() - tickerCacheTime < TICKER_TTL) {
-    return res.json({ topics: tickerCache, cached: true });
+    return res.json({ topics: tickerCache.topics, labels: tickerCache.labels, cached: true });
   }
 
   // Need feed cache to exist; if not, tell the client to retry later
-  if (!cache) return res.json({ topics: null });
+  if (!cache) return res.json({ topics: null, labels: {} });
 
   // Use most recent items from whatever's in the cache
   const items = cache.slice(0, 30);
-  if (!items.length) return res.json({ topics: null });
+  if (!items.length) return res.json({ topics: null, labels: {} });
 
-  let topics;
+  let topics, labels = {};
   if (process.env.ANTHROPIC_API_KEY) {
     try {
       const numbered = items.map((item, i) => `${i}: ${item.title}`).join('\n');
@@ -342,10 +342,10 @@ app.get('/api/ticker', async (req, res) => {
         },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 600,
+          max_tokens: 1000,
           messages: [{
             role: 'user',
-            content: `Group these numbered headlines into 5–7 broad topics. For each topic write one punchy 6–10 word summary and list the headline numbers that belong to it. Return ONLY a JSON array, no markdown:\n[{"summary":"...","indices":[0,2,5]}]\n\nHeadlines:\n${numbered}`,
+            content: `Do two things with these numbered headlines:\n1. Group them into 5–7 broad topics for a news ticker. For each, write a punchy 6–10 word summary and list the headline indices that belong to it.\n2. Classify each headline with one or more of these labels (only where clearly applicable): politics, nyc, culture, media, science, tech.\n\nReturn ONLY JSON, no markdown:\n{"ticker":[{"summary":"...","indices":[0,2,5]}],"labels":{"0":["politics"],"3":["culture","nyc"]}}\n\nHeadlines:\n${numbered}`,
           }],
         }),
       });
@@ -353,10 +353,15 @@ app.get('/api/ticker', async (req, res) => {
       const raw = data?.content?.[0]?.text?.trim().replace(/^```json\s*|\s*```$/g, '') || '';
       const parsed = JSON.parse(raw);
       // Map indices → article links for exact client-side matching
-      topics = parsed.map(t => ({
+      topics = (parsed.ticker || []).map(t => ({
         summary: t.summary,
         links: (t.indices || []).map(i => items[i]?.link).filter(Boolean),
       }));
+      // Build labels map: link → [topic, ...]
+      for (const [idxStr, topicList] of Object.entries(parsed.labels || {})) {
+        const link = items[parseInt(idxStr)]?.link;
+        if (link) labels[link] = topicList;
+      }
     } catch (err) {
       console.error('Ticker Claude call failed:', err.message);
     }
@@ -370,9 +375,9 @@ app.get('/api/ticker', async (req, res) => {
     }));
   }
 
-  tickerCache = topics;
+  tickerCache = { topics, labels };
   tickerCacheTime = Date.now();
-  res.json({ topics });
+  res.json({ topics, labels });
 });
 
 // Check whether a URL can be embedded in an iframe
