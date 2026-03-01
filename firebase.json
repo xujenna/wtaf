@@ -1,0 +1,16 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "**", "function": "app", "region": "us-central1" }
+    ]
+  },
+  "functions": [
+    {
+      "source": ".",
+      "codebase": "default",
+      "ignore": ["public", ".git", "firebase.json", ".firebaserc", "*.log"]
+    }
+  ]
+}
