@@ -1266,6 +1266,8 @@
   function setTickerFilter(topic) {
     const isActive = tickerFilter?.summary === topic.summary;
     tickerFilter = isActive ? null : topic;
+    activeTopic = 'all';
+    document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.ticker-item').forEach(el => {
       el.classList.toggle('ticker-active', !isActive && el.textContent === topic.summary);
     });
