@@ -214,6 +214,10 @@ let cache = null;
 let cacheTime = null;
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
+let tickerCache = null;
+let tickerCacheTime = null;
+const TICKER_TTL = 30 * 60 * 1000; // 30 minutes
+
 app.get('/api/sources', (req, res) => {
   res.json(SOURCES.map(({ name, url, description, category, feed }) => ({
     name,
@@ -309,6 +313,57 @@ app.get('/api/feeds', async (req, res) => {
   cacheTime = Date.now();
 
   res.json({ items, failed });
+});
+
+// Generate a cable-news-style ticker summary of today's headlines
+app.get('/api/ticker', async (req, res) => {
+  if (tickerCache && Date.now() - tickerCacheTime < TICKER_TTL) {
+    return res.json({ text: tickerCache, cached: true });
+  }
+
+  // Need feed cache to exist; if not, tell the client to retry later
+  if (!cache) return res.json({ text: null });
+
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const todayItems = cache.filter(item => item.date && new Date(item.date).getTime() > cutoff);
+  if (!todayItems.length) return res.json({ text: null });
+
+  const titles = todayItems.map(i => i.title).join('\n');
+
+  let text;
+  if (process.env.ANTHROPIC_API_KEY) {
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 300,
+          messages: [{
+            role: 'user',
+            content: `You are writing a cable news ticker. Given these headlines, write 5–8 punchy ticker phrases separated by " ◆ ". Each phrase should be 5–9 words, factual and urgent in tone. Do not use "BREAKING". Output only the ticker text, nothing else.\n\nHeadlines:\n${titles}`,
+          }],
+        }),
+      });
+      const data = await response.json();
+      text = data?.content?.[0]?.text?.trim() || null;
+    } catch (err) {
+      console.error('Ticker Claude call failed:', err.message);
+    }
+  }
+
+  // Fallback: use the raw titles formatted as ticker phrases
+  if (!text) {
+    text = todayItems.slice(0, 8).map(i => i.title.replace(/\s+/g, ' ').trim()).join(' ◆ ');
+  }
+
+  tickerCache = text;
+  tickerCacheTime = Date.now();
+  res.json({ text });
 });
 
 // Check whether a URL can be embedded in an iframe
