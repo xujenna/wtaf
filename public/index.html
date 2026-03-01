@@ -1210,15 +1210,14 @@
       const content = text + ' ◆ ' + text + ' ◆ ';
       track.textContent = content;
 
-      // Speed: ~120px per second. Duration covers padding (100% = wrapWidth)
-      // plus the text itself (track.scrollWidth before padding).
-      // We set this after rendering so scrollWidth is accurate.
-      requestAnimationFrame(() => {
+      // Show the bar first so the browser lays it out and scrollWidth is real,
+      // then measure and set the animation duration in the next frame.
+      bar.style.display = 'flex';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
         const speed    = 120; // px/s
         const distance = track.scrollWidth; // includes padding-left: 100%
         track.style.animationDuration = (distance / speed).toFixed(1) + 's';
-        bar.style.display = 'flex';
-      });
+      }));
     } catch { /* ticker is decorative, fail silently */ }
   }
 

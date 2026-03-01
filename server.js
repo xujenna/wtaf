@@ -324,11 +324,11 @@ app.get('/api/ticker', async (req, res) => {
   // Need feed cache to exist; if not, tell the client to retry later
   if (!cache) return res.json({ text: null });
 
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-  const todayItems = cache.filter(item => item.date && new Date(item.date).getTime() > cutoff);
-  if (!todayItems.length) return res.json({ text: null });
+  // Use most recent items from whatever's in the cache
+  const items = cache.slice(0, 30);
+  if (!items.length) return res.json({ text: null });
 
-  const titles = todayItems.map(i => i.title).join('\n');
+  const titles = items.map(i => i.title).join('\n');
 
   let text;
   if (process.env.ANTHROPIC_API_KEY) {
