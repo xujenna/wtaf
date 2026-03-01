@@ -311,17 +311,12 @@ app.get('/api/feeds', async (req, res) => {
 
   cache = items;
   cacheTime = Date.now();
+  tickerCache = null; // invalidate ticker so it re-groups with fresh articles
 
   res.json({ items, failed });
 });
 
-// Extract meaningful search keywords from a headline (used as ticker fallback)
-function extractKeywords(title) {
-  const stop = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','was','are','were','be','been','have','has','had','do','does','did','will','would','could','should','may','might','can','its','it','this','that','these','those','over','into','about','after','before','as','if','he','she','they','we','you','new','says','after','amid','over','what']);
-  return title.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3 && !stop.has(w)).slice(0, 4);
-}
-
-// Generate a cable-news-style ticker: one summary per topic, with keywords for filtering
+// Generate a cable-news-style ticker: one summary per topic, with exact article links for filtering
 app.get('/api/ticker', async (req, res) => {
   if (tickerCache && Date.now() - tickerCacheTime < TICKER_TTL) {
     return res.json({ topics: tickerCache, cached: true });
@@ -334,11 +329,10 @@ app.get('/api/ticker', async (req, res) => {
   const items = cache.slice(0, 30);
   if (!items.length) return res.json({ topics: null });
 
-  const titles = items.map(i => i.title).join('\n');
-
   let topics;
   if (process.env.ANTHROPIC_API_KEY) {
     try {
+      const numbered = items.map((item, i) => `${i}: ${item.title}`).join('\n');
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -351,23 +345,28 @@ app.get('/api/ticker', async (req, res) => {
           max_tokens: 600,
           messages: [{
             role: 'user',
-            content: `Group these headlines into 5–7 broad topics. For each topic write one punchy 6–10 word summary. Return ONLY a JSON array, no markdown, no explanation:\n[{"summary":"...","keywords":["term1","term2","term3"]}]\nKeywords (2–5 per topic) should be the best search terms to find related headlines.\n\nHeadlines:\n${titles}`,
+            content: `Group these numbered headlines into 5–7 broad topics. For each topic write one punchy 6–10 word summary and list the headline numbers that belong to it. Return ONLY a JSON array, no markdown:\n[{"summary":"...","indices":[0,2,5]}]\n\nHeadlines:\n${numbered}`,
           }],
         }),
       });
       const data = await response.json();
       const raw = data?.content?.[0]?.text?.trim().replace(/^```json\s*|\s*```$/g, '') || '';
-      topics = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      // Map indices → article links for exact client-side matching
+      topics = parsed.map(t => ({
+        summary: t.summary,
+        links: (t.indices || []).map(i => items[i]?.link).filter(Boolean),
+      }));
     } catch (err) {
       console.error('Ticker Claude call failed:', err.message);
     }
   }
 
-  // Fallback: one item per headline
+  // Fallback: one entry per headline, linked to that exact article
   if (!topics) {
     topics = items.slice(0, 8).map(item => ({
       summary: item.title.replace(/\s+/g, ' ').trim(),
-      keywords: extractKeywords(item.title),
+      links: [item.link],
     }));
   }
 
