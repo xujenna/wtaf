@@ -322,8 +322,34 @@ app.get('/api/ticker', async (req, res) => {
     return res.json({ topics: tickerCache.topics, labels: tickerCache.labels, cached: true });
   }
 
-  // Need feed cache to exist; if not, tell the client to retry later
-  if (!cache) return res.json({ topics: null, labels: {} });
+  // If feed cache is empty (e.g. different function instance), populate it now
+  if (!cache) {
+    const feedSources = SOURCES.filter(s => s.feed);
+    const allItems = [];
+    const results = await Promise.allSettled(
+      feedSources.map(async source => {
+        const feed = await parser.parseURL(source.feed);
+        return feed.items.slice(0, 8).map(item => ({
+          source: source.name,
+          sourceUrl: source.url,
+          category: source.category,
+          title: item.title?.trim(),
+          link: item.link,
+          date: item.isoDate || item.pubDate || null,
+          snippet: (item.contentSnippet || item.summary || '').replace(/\s+/g, ' ').trim().slice(0, 800) || null,
+          content: extractContent(item),
+          image: extractImage(item),
+        }));
+      })
+    );
+    results.forEach(r => { if (r.status === 'fulfilled') allItems.push(...r.value); });
+    cache = allItems.filter(i => i.title && i.link).sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return new Date(b.date) - new Date(a.date);
+    });
+    cacheTime = Date.now();
+  }
 
   // Use most recent items from whatever's in the cache
   const items = cache.slice(0, 30);
