@@ -358,7 +358,7 @@ app.get('/api/ticker', async (req, res) => {
 
   // Fallback: use the raw titles formatted as ticker phrases
   if (!text) {
-    text = todayItems.slice(0, 8).map(i => i.title.replace(/\s+/g, ' ').trim()).join(' ◆ ');
+    text = items.slice(0, 8).map(i => i.title.replace(/\s+/g, ' ').trim()).join(' ◆ ');
   }
 
   tickerCache = text;
