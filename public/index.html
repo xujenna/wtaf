@@ -216,16 +216,16 @@
       align-items: stretch;
       height: 2.25rem;
       overflow: hidden;
-      border-bottom: 2px solid var(--accent);
-      background: #111;
+      /* border-bottom: 2px solid var(--accent); */
+      /* background: #111; */
       color: #fff;
-      font-family: 'Verlag', sans-serif;
+      font-family: 'Gt Super';
       font-size: 0.78rem;
-      font-weight: 700;
+      /* font-weight: 700; */
       letter-spacing: 0.07em;
-      text-transform: uppercase;
+      /* text-transform: uppercase; */
     }
-    [data-theme="dark"] #ticker-bar { background: #000; }
+    /* [data-theme="dark"] #ticker-bar { background: #000; } */
 
     #ticker-label {
       flex-shrink: 0;
@@ -802,19 +802,19 @@
 <body>
 
 <header>
+      <!-- News ticker -->
+<div id="ticker-bar" style="display:none;" aria-live="off" aria-label="Today's news ticker">
+  <!-- <div id="ticker-label">Today</div> -->
+  <div id="ticker-wrap">
+    <div id="ticker-track"></div>
+  </div>
+</div>
   <div class="header-title-row">
     <div class="site-title"><span>Good news / bad times</span></div>
     <button id="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
   </div>
 </header>
 
-<!-- News ticker -->
-<div id="ticker-bar" style="display:none;" aria-live="off" aria-label="Today's news ticker">
-  <div id="ticker-label">Today</div>
-  <div id="ticker-wrap">
-    <div id="ticker-track"></div>
-  </div>
-</div>
 
 <!-- Topic filter -->
 <div class="filter-row">
@@ -1258,8 +1258,9 @@
 
     bar.style.display = 'flex';
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      // scrollWidth = 2× one copy; animate across one copy at 100px/s
-      track.style.animationDuration = (track.scrollWidth / 2 / 100).toFixed(1) + 's';
+      // scrollWidth = 2× one copy; animate across one copy (lower px/s = slower)
+      const tickerPxPerSec = 50;
+      track.style.animationDuration = (track.scrollWidth / 2 / tickerPxPerSec).toFixed(1) + 's';
     }));
   }
 
