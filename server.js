@@ -365,7 +365,7 @@ app.get('/api/ticker', async (req, res) => {
           max_tokens: 1000,
           messages: [{
             role: 'user',
-            content: `Do two things with these numbered headlines:\n1. Group them into 5–7 broad topics for a news ticker. For each, write a punchy 6–10 word summary and list the headline indices that belong to it.\n2. Classify each headline with one or more of these labels (only where clearly applicable): politics, nyc, culture, media, science, tech.\n\nReturn ONLY JSON, no markdown:\n{"ticker":[{"summary":"...","indices":[0,2,5]}],"labels":{"0":["politics"],"3":["culture","nyc"]}}\n\nHeadlines:\n${numbered}`,
+            content: `Do two things with these numbered headlines:\n1. Group them into 5–7 broad topics for a news ticker. Each topic MUST contain at least 2 headlines — never create a topic for a single article. Omit any topic that would only have one article. For each, write a punchy 6–10 word summary and list the headline indices that belong to it.\n2. Classify each headline with one or more of these labels (only where clearly applicable): politics, nyc, culture, media, science, tech.\n\nReturn ONLY JSON, no markdown:\n{"ticker":[{"summary":"...","indices":[0,2,5]}],"labels":{"0":["politics"],"3":["culture","nyc"]}}\n\nHeadlines:\n${numbered}`,
           }],
         }),
       });
