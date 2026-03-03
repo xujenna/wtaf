@@ -103,13 +103,7 @@ const SOURCES = [
     description: 'The best tech newsroom in the world right now',
     category: 'newsroom',
   },
-  {
-    name: '1-900-HOTDOG',
-    url: 'https://www.1900hotdog.com',
-    feed: 'https://www.1900hotdog.com/feed/',
-    description: 'For anyone who still misses Cracked',
-    category: 'newsletter',
-  },
+
   {
     name: 'More Perfect Union',
     url: 'https://perfectunion.us',
