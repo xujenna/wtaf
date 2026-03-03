@@ -195,11 +195,11 @@ const SOURCES = [
     category: 'newsroom',
   },
   {
-    name: 'Semafor',
-    url: 'https://www.semafor.com',
-    feed: 'https://www.semafor.com/rss.xml',
-    description: 'Global news with transparent reporting and sourcing',
-    category: 'newsroom',
+    name: 'Atlantic Yards Report',
+    url: 'https://atlanticyardsreport.blogspot.com',
+    feed: 'https://atlanticyardsreport.blogspot.com/feeds/posts/default?alt=rss',
+    description: 'Coverage of Atlantic Yards/Pacific Park development in Brooklyn',
+    category: 'nyc',
   },
   {
     name: 'MIT Technology Review',
