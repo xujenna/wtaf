@@ -1321,7 +1321,7 @@
       const read   = getReadItems();
       const hidden = getHiddenItems();
       filtered = allItems.filter(item => {
-        if (read.has(item.link))   return false;
+        if (!tickerFilter && read.has(item.link))   return false;
         if (hidden.has(item.link)) return false;
         if (isExcluded(item)) return false;
         if (activeSource && item.source !== activeSource) return false;
