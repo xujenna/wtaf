@@ -350,6 +350,9 @@ app.get('/api/ticker', async (req, res) => {
   if (!items.length) return res.json({ topics: null, labels: {} });
 
   let topics, labels = {};
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.log('[ticker] No ANTHROPIC_API_KEY set — using fallback');
+  }
   if (process.env.ANTHROPIC_API_KEY) {
     try {
       const numbered = items.map((item, i) => `${i}: ${item.title}`).join('\n');
@@ -370,13 +373,16 @@ app.get('/api/ticker', async (req, res) => {
         }),
       });
       const data = await response.json();
+      console.log('[ticker] Claude status:', response.status, data?.error || 'ok');
       const raw = data?.content?.[0]?.text?.trim().replace(/^```json\s*|\s*```$/g, '') || '';
+      console.log('[ticker] Claude raw:', raw.slice(0, 300));
       const parsed = JSON.parse(raw);
       // Map indices → article links for exact client-side matching
       topics = (parsed.ticker || []).map(t => ({
         summary: t.summary,
         links: (t.indices || []).map(i => items[i]?.link).filter(Boolean),
       })).filter(t => t.links.length >= 2);
+      console.log('[ticker] topics generated:', topics.map(t => `${t.summary} (${t.links.length} links)`));
       // Build labels map: link → [topic, ...]
       for (const [idxStr, topicList] of Object.entries(parsed.labels || {})) {
         const link = items[parseInt(idxStr)]?.link;
