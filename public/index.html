@@ -1321,7 +1321,7 @@
       const read   = getReadItems();
       const hidden = getHiddenItems();
       filtered = allItems.filter(item => {
-        if (read.has(item.link))   return false;
+        if (!tickerFilter && read.has(item.link))   return false;
         if (hidden.has(item.link)) return false;
         if (isExcluded(item)) return false;
         if (activeSource && item.source !== activeSource) return false;
@@ -1454,7 +1454,6 @@
     currentLightboxUrl  = url;
     currentLightboxItem = allItems.find(i => i.link === url) || getSavedItems().find(i => i.link === url) || null;
     markAsRead(url);
-    allItems = allItems.filter(i => i.link !== url);
     renderItems();
     updateLightboxSaveBtn();
     document.getElementById('lightbox-open-tab').href = url;
