@@ -376,7 +376,7 @@ app.get('/api/ticker', async (req, res) => {
       topics = (parsed.ticker || []).map(t => ({
         summary: t.summary,
         links: (t.indices || []).map(i => items[i]?.link).filter(Boolean),
-      }));
+      })).filter(t => t.links.length >= 2);
       // Build labels map: link → [topic, ...]
       for (const [idxStr, topicList] of Object.entries(parsed.labels || {})) {
         const link = items[parseInt(idxStr)]?.link;
