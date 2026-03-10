@@ -160,7 +160,8 @@
 
     /* ── HEADER ── */
     header {
-      padding: 1rem 2rem 0.4rem;
+      padding: 1rem 2rem 0.4rem 2rem;
+      padding-right: calc(320px + 2rem); /* leave room for sidebar */
       display: flex;
       align-items: flex-start;
       gap: 1rem;
@@ -169,27 +170,47 @@
 
     .header-title-row {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       gap: 0.75rem;
       flex-wrap: wrap;
     }
 
+    /* Wrap keeps subtitle OUTSIDE the 12rem box so it never inherits/squishes */
+    .site-title-group {
+      display: inline-flex;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 0 0.5rem;
+    }
+
     .site-title {
-      font-size: 8rem;
+      font-size: 12rem;
       font-weight: 700;
       letter-spacing: -0.05em;
       font-family: 'GT Super', sans-serif;
       text-transform: titlecase;
       font-style: italic;
+      line-height: 0.9;
+      color: var(--text);
     }
 
     .site-title span { color: var(--text); }
 
-    .site-subtitle {
-      font-size: 0.85rem;
+    /* Subtitle is sibling of .site-title — not inside 12rem context */
+    #subtitle {
+      display: inline-block;
+      font-size: 1.15rem;
+      line-height: 1.3;
       color: var(--muted);
       font-family: 'Verlag', sans-serif;
+      white-space: nowrap;
+      /* text-transform: uppercase; */
+      font-style: normal;
+      font-weight: 400;
+      /* letter-spacing: 0.08em; */
+      transform: translateY(-3em);
     }
+
 
     #theme-toggle {
       background: none;
@@ -218,14 +239,14 @@
       overflow: hidden;
       /* border-bottom: 2px solid var(--accent); */
       /* background: #111; */
-      color: var(--muted);
+      color: var(--text);
       font-family: 'Gt Super';
       font-size: 0.78rem;
       /* font-weight: 700; */
       letter-spacing: 0.07em;
       /* text-transform: uppercase; */
     }
-    [data-theme="dark"] #ticker-bar { color: #fff; }
+    /* [data-theme="dark"] #ticker-bar { background: #000; } */
 
     #ticker-label {
       flex-shrink: 0;
@@ -233,7 +254,7 @@
       align-items: center;
       padding: 0 1rem;
       background: var(--accent);
-      color: #fff;
+      color: var(--text);
       letter-spacing: 0.12em;
     }
 
@@ -270,12 +291,25 @@
     .ticker-sep { opacity: 0.45; margin: 0 0.3em; }
 
     .filter-row {
+      position: relative;
       padding: 0.4rem 2rem 0.75rem;
-      border-bottom: 1px solid var(--border);
+      padding-right: calc(320px + 2rem); /* leave room for sidebar */
+      border-bottom: none;
       display: flex;
       gap: 1.5rem;
       flex-wrap: wrap;
       align-items: center;
+    }
+
+    .filter-row::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 320px; /* stop at sidebar edge */
+      bottom: 0;
+      height: 1px;
+      background: var(--border);
+      pointer-events: none;
     }
 
     .filter-btn {
@@ -286,9 +320,9 @@
       color: var(--text);
       padding: 0.35rem 0 0.35rem 1.5rem;
       cursor: pointer;
-      font-size: 1.5rem;
-      font-family: 'GT Super', 'Georgia', serif;
-      font-weight: 700;
+      font-size: 1.25rem;
+      font-family: 'Verlag', sans-serif;
+      font-weight: 400;
       font-style: normal;
       transition: font-style 0.15s;
       white-space: nowrap;
@@ -355,8 +389,20 @@
       min-height: calc(100vh - 200px);
     }
 
+    /* Full-height hairline at sidebar edge */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      right: 320px;
+      width: 1px;
+      background: var(--border);
+      pointer-events: none;
+    }
+
     /* ── FEED ── */
-    #feed { border-right: 1px solid var(--border); }
+    #feed { border-right: none; }
 
     /* ── CATEGORY SECTIONS ── */
     .category-section { border-bottom: 2px solid var(--border); }
@@ -628,8 +674,10 @@
     /* ── SIDEBAR ── */
     #sidebar {
       padding: 1.5rem;
-      position: sticky;
+      position: fixed;
       top: 0;
+      right: 0;
+      width: 320px;
       height: 100vh;
       overflow-y: auto;
     }
@@ -790,6 +838,10 @@
     @media (max-width: 860px) {
       main { grid-template-columns: 1fr; }
       #sidebar { display: none; }
+      body::before { display: none; }
+      .filter-row::after { right: 0; }
+      header { padding-right: 2rem; }
+      .filter-row { padding-right: 2rem; }
     }
 
     @media (max-width: 600px) {
@@ -810,7 +862,10 @@
   </div>
 </div>
   <div class="header-title-row">
-    <div class="site-title"><span>Good news / bad times</span></div>
+    <div class="site-title-group">
+      <div class="site-title"><span>Good news</span></div>
+      <span id="subtitle">bad times</span>
+    </div>
     <button id="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
   </div>
 </header>
