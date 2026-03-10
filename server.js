@@ -239,6 +239,9 @@ const TICKER_STOP = new Set([
   'between','against','other','another','very','like','make','take',
   'report','reports','could','even','long','show','no','yes','us','uk',
   'eu','un','mr','ms','dr','st','off','per','via','non','pro','anti',
+  // colors — too generic as standalone entity topics
+  'white','black','red','blue','green','gray','grey','brown','yellow',
+  'orange','purple','pink','gold','silver',
 ]);
 
 // Build a human-readable summary by pulling key descriptor words from the grouped titles
