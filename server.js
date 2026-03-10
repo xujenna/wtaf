@@ -244,32 +244,28 @@ const TICKER_STOP = new Set([
   'orange','purple','pink','gold','silver',
 ]);
 
-// Build a human-readable summary by pulling key descriptor words from the grouped titles
+// Pick the most central headline from the group as the topic summary
 function buildTopicSummary(term, idxs, items) {
-  const termWords = new Set(term.toLowerCase().split(/\s+/));
-  const wordFreq = {};
-  idxs.forEach(i => {
-    const seen = new Set();
-    items[i].title
-      .replace(/[^a-zA-Z\s]/g, ' ')
-      .split(/\s+/)
-      .forEach(w => {
-        const lw = w.toLowerCase();
-        if (lw.length >= 4 && !TICKER_STOP.has(lw) && !termWords.has(lw) && !seen.has(lw)) {
-          wordFreq[lw] = (wordFreq[lw] || 0) + 1;
-          seen.add(lw);
-        }
-      });
+  if (idxs.length === 1) {
+    const t = items[idxs[0]].title;
+    return t.length > 65 ? t.slice(0, 62) + '…' : t;
+  }
+  // Score each title by how many of its significant words appear in other titles in the group
+  const getWords = title => new Set(
+    title.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/)
+      .filter(w => w.length >= 3 && !TICKER_STOP.has(w))
+  );
+  const wordSets = idxs.map(i => getWords(items[i].title));
+  const scores = idxs.map((_, pos) => {
+    let score = 0;
+    wordSets.forEach((ws, j) => {
+      if (j !== pos) wordSets[pos].forEach(w => { if (ws.has(w)) score++; });
+    });
+    return score;
   });
-  const kws = Object.entries(wordFreq)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([w]) => w);
-  if (!kws.length) return term;
-  const kwStr = kws.length === 1 ? kws[0]
-    : kws.length === 2 ? `${kws[0]} & ${kws[1]}`
-    : `${kws[0]}, ${kws[1]} & ${kws[2]}`;
-  return `${term}: ${kwStr}`;
+  const best = idxs[scores.indexOf(Math.max(...scores))];
+  const t = items[best].title;
+  return t.length > 65 ? t.slice(0, 62) + '…' : t;
 }
 
 function buildTickerTopics(items) {
