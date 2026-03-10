@@ -254,7 +254,7 @@
 
     @keyframes ticker-scroll {
       from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
+      to   { transform: translateX(var(--scroll-pct, -50%)); }
     }
 
     .ticker-item {
@@ -1252,15 +1252,18 @@
       track.appendChild(sep);
     }
 
-    // Double the content so the animation loops seamlessly (0 → -50%)
+    // Build enough copies so the total width exceeds the viewport (for seamless loop)
     buildSet();
-    buildSet();
-
     bar.style.display = 'flex';
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      // scrollWidth = 2× one copy; animate across one copy (lower px/s = slower)
+      const oneSetWidth = track.scrollWidth;
+      // Need at least 2 full copies wider than the viewport so the seam is never visible
+      const copies = Math.max(2, Math.ceil(window.innerWidth * 2 / oneSetWidth) + 1);
+      for (let i = 1; i < copies; i++) buildSet();
+      const pct = (100 / copies).toFixed(4);
+      track.style.setProperty('--scroll-pct', `-${pct}%`);
       const tickerPxPerSec = 50;
-      track.style.animationDuration = (track.scrollWidth / 2 / tickerPxPerSec).toFixed(1) + 's';
+      track.style.animationDuration = (oneSetWidth / tickerPxPerSec).toFixed(1) + 's';
     }));
   }
 
