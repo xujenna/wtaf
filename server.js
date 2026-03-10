@@ -226,34 +226,63 @@ function classifyLabels(title) {
 }
 
 // Local keyword/entity-based topic clustering (no API key needed)
-function buildTickerTopics(items) {
-  const STOP = new Set([
-    'the','a','an','is','are','was','were','to','of','in','on','at','for',
-    'with','as','by','from','that','this','it','he','she','they','we','you',
-    'and','or','but','not','be','have','has','had','do','did','does','will',
-    'would','could','should','may','might','its','their','our','his','her',
-    'what','how','when','where','who','why','which','after','before','about',
-    'more','new','says','said','over','up','out','than','so','if','can',
-    'been','just','also','now','back','two','one','all','some','still',
-    'here','amid','into','plan','year','time','week','month','day',
-    'first','last','next','many','much','most','well','while','since',
-    'between','against','other','another','very','like','make','take',
-    'report','reports','could','amid','after','even','long','show',
-  ]);
+const TICKER_STOP = new Set([
+  'the','a','an','is','are','was','were','to','of','in','on','at','for',
+  'with','as','by','from','that','this','it','he','she','they','we','you',
+  'and','or','but','not','be','have','has','had','do','did','does','will',
+  'would','could','should','may','might','its','their','our','his','her',
+  'what','how','when','where','who','why','which','after','before','about',
+  'more','new','says','said','over','up','out','than','so','if','can',
+  'been','just','also','now','back','two','one','all','some','still',
+  'here','amid','into','plan','year','time','week','month','day',
+  'first','last','next','many','much','most','well','while','since',
+  'between','against','other','another','very','like','make','take',
+  'report','reports','could','even','long','show','no','yes','us','uk',
+  'eu','un','mr','ms','dr','st','off','per','via','non','pro','anti',
+]);
 
+// Build a human-readable summary by pulling key descriptor words from the grouped titles
+function buildTopicSummary(term, idxs, items) {
+  const termWords = new Set(term.toLowerCase().split(/\s+/));
+  const wordFreq = {};
+  idxs.forEach(i => {
+    const seen = new Set();
+    items[i].title
+      .replace(/[^a-zA-Z\s]/g, ' ')
+      .split(/\s+/)
+      .forEach(w => {
+        const lw = w.toLowerCase();
+        if (lw.length >= 4 && !TICKER_STOP.has(lw) && !termWords.has(lw) && !seen.has(lw)) {
+          wordFreq[lw] = (wordFreq[lw] || 0) + 1;
+          seen.add(lw);
+        }
+      });
+  });
+  const kws = Object.entries(wordFreq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([w]) => w);
+  if (!kws.length) return term;
+  const kwStr = kws.length === 1 ? kws[0]
+    : kws.length === 2 ? `${kws[0]} & ${kws[1]}`
+    : `${kws[0]}, ${kws[1]} & ${kws[2]}`;
+  return `${term}: ${kwStr}`;
+}
+
+function buildTickerTopics(items) {
   const getTerms = title => {
     const terms = new Set();
     const words = title.split(/\s+/);
-    // Named entities: capitalized words not at position 0, not stop words
+    // Named entities: capitalized words not at position 0, min 3 chars, not stop words
     for (let i = 1; i < words.length; i++) {
       const w = words[i].replace(/[^a-zA-Z'-]/g, '');
-      if (w.length < 2 || STOP.has(w.toLowerCase())) continue;
+      if (w.length < 3 || TICKER_STOP.has(w.toLowerCase())) continue;
       if (/^[A-Z]/.test(w)) {
         terms.add(w);
         // 2-word entity
         if (i + 1 < words.length) {
           const w2 = words[i + 1].replace(/[^a-zA-Z'-]/g, '');
-          if (w2.length > 1 && /^[A-Z]/.test(w2) && !STOP.has(w2.toLowerCase())) {
+          if (w2.length >= 3 && /^[A-Z]/.test(w2) && !TICKER_STOP.has(w2.toLowerCase())) {
             terms.add(`${w} ${w2}`);
           }
         }
@@ -261,7 +290,7 @@ function buildTickerTopics(items) {
     }
     // Long lowercase keywords
     title.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/)
-      .filter(w => w.length >= 5 && !STOP.has(w))
+      .filter(w => w.length >= 5 && !TICKER_STOP.has(w))
       .forEach(w => terms.add(w));
     return terms;
   };
@@ -286,10 +315,12 @@ function buildTickerTopics(items) {
   const topics = [];
   for (const [term, idxs] of candidates) {
     if (topics.length >= 7) break;
-    // Only create this topic if it brings at least 2 articles not yet in a better topic
     const fresh = idxs.filter(i => !assigned.has(i));
     if (fresh.length < 2) continue;
-    topics.push({ summary: term, links: idxs.map(i => items[i].link) });
+    topics.push({
+      summary: buildTopicSummary(term, idxs, items),
+      links: idxs.map(i => items[i].link),
+    });
     fresh.forEach(i => assigned.add(i));
   }
   return topics;
