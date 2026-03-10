@@ -208,6 +208,93 @@ let cache = null;
 let cacheTime = null;
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
+// Keyword-based label classification
+const LABEL_KEYWORDS = {
+  politics: ['trump','biden','congress','senate','white house','election','democrat','republican','government','president','political','policy','vote','legislation','supreme court'],
+  nyc:      ['new york','nyc','brooklyn','manhattan','queens','bronx','staten island','city hall','nypd','mta','subway'],
+  culture:  ['music','film','movie','book','art','culture','entertainment','celebrity','fashion','food','restaurant','award','festival','concert','album'],
+  media:    ['media','newspaper','journalist','journalism','podcast','television','streaming','netflix','social media','twitter','facebook','instagram','youtube'],
+  science:  ['science','research','study','climate','space','nasa','health','medical','disease','environment','species','planet','discovery'],
+  tech:     ['tech','technology',' ai ','artificial intelligence','software','apple','google','microsoft','amazon','startup','crypto','bitcoin'],
+};
+
+function classifyLabels(title) {
+  const lower = ` ${title.toLowerCase()} `;
+  return Object.entries(LABEL_KEYWORDS)
+    .filter(([, kws]) => kws.some(kw => lower.includes(kw)))
+    .map(([label]) => label);
+}
+
+// Local keyword/entity-based topic clustering (no API key needed)
+function buildTickerTopics(items) {
+  const STOP = new Set([
+    'the','a','an','is','are','was','were','to','of','in','on','at','for',
+    'with','as','by','from','that','this','it','he','she','they','we','you',
+    'and','or','but','not','be','have','has','had','do','did','does','will',
+    'would','could','should','may','might','its','their','our','his','her',
+    'what','how','when','where','who','why','which','after','before','about',
+    'more','new','says','said','over','up','out','than','so','if','can',
+    'been','just','also','now','back','two','one','all','some','still',
+    'here','amid','into','plan','year','time','week','month','day',
+    'first','last','next','many','much','most','well','while','since',
+    'between','against','other','another','very','like','make','take',
+    'report','reports','could','amid','after','even','long','show',
+  ]);
+
+  const getTerms = title => {
+    const terms = new Set();
+    const words = title.split(/\s+/);
+    // Named entities: capitalized words not at position 0, not stop words
+    for (let i = 1; i < words.length; i++) {
+      const w = words[i].replace(/[^a-zA-Z'-]/g, '');
+      if (w.length < 2 || STOP.has(w.toLowerCase())) continue;
+      if (/^[A-Z]/.test(w)) {
+        terms.add(w);
+        // 2-word entity
+        if (i + 1 < words.length) {
+          const w2 = words[i + 1].replace(/[^a-zA-Z'-]/g, '');
+          if (w2.length > 1 && /^[A-Z]/.test(w2) && !STOP.has(w2.toLowerCase())) {
+            terms.add(`${w} ${w2}`);
+          }
+        }
+      }
+    }
+    // Long lowercase keywords
+    title.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/)
+      .filter(w => w.length >= 5 && !STOP.has(w))
+      .forEach(w => terms.add(w));
+    return terms;
+  };
+
+  // Build inverted index: term → [article indices]
+  const index = {};
+  items.forEach((item, i) => {
+    getTerms(item.title).forEach(term => {
+      (index[term] = index[term] || []).push(i);
+    });
+  });
+
+  // Sort: multi-word entities first (more specific), then by article count
+  const candidates = Object.entries(index)
+    .filter(([, idxs]) => idxs.length >= 2)
+    .sort(([a, ai], [b, bi]) => {
+      const diff = b.split(' ').length - a.split(' ').length;
+      return diff !== 0 ? diff : bi.length - ai.length;
+    });
+
+  const assigned = new Set();
+  const topics = [];
+  for (const [term, idxs] of candidates) {
+    if (topics.length >= 7) break;
+    // Only create this topic if it brings at least 2 articles not yet in a better topic
+    const fresh = idxs.filter(i => !assigned.has(i));
+    if (fresh.length < 2) continue;
+    topics.push({ summary: term, links: idxs.map(i => items[i].link) });
+    fresh.forEach(i => assigned.add(i));
+  }
+  return topics;
+}
+
 let tickerCache = null;
 let tickerCacheTime = null;
 const TICKER_TTL = 30 * 60 * 1000; // 30 minutes
@@ -349,57 +436,12 @@ app.get('/api/ticker', async (req, res) => {
   const items = cache.slice(0, 30);
   if (!items.length) return res.json({ topics: null, labels: {} });
 
-  let topics, labels = {};
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.log('[ticker] No ANTHROPIC_API_KEY set — using fallback');
-  }
-  if (process.env.ANTHROPIC_API_KEY) {
-    try {
-      const numbered = items.map((item, i) => `${i}: ${item.title}`).join('\n');
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'x-api-key': process.env.ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: `Do two things with these numbered headlines:\n1. Group them into 5–7 broad topics for a news ticker. Each topic MUST contain at least 2 headlines — never create a topic for a single article. Omit any topic that would only have one article. For each, write a punchy 6–10 word summary and list the headline indices that belong to it.\n2. Classify each headline with one or more of these labels (only where clearly applicable): politics, nyc, culture, media, science, tech.\n\nReturn ONLY JSON, no markdown:\n{"ticker":[{"summary":"...","indices":[0,2,5]}],"labels":{"0":["politics"],"3":["culture","nyc"]}}\n\nHeadlines:\n${numbered}`,
-          }],
-        }),
-      });
-      const data = await response.json();
-      console.log('[ticker] Claude status:', response.status, data?.error || 'ok');
-      const raw = data?.content?.[0]?.text?.trim().replace(/^```json\s*|\s*```$/g, '') || '';
-      console.log('[ticker] Claude raw:', raw.slice(0, 300));
-      const parsed = JSON.parse(raw);
-      // Map indices → article links for exact client-side matching
-      topics = (parsed.ticker || []).map(t => ({
-        summary: t.summary,
-        links: (t.indices || []).map(i => items[i]?.link).filter(Boolean),
-      })).filter(t => t.links.length >= 2);
-      console.log('[ticker] topics generated:', topics.map(t => `${t.summary} (${t.links.length} links)`));
-      // Build labels map: link → [topic, ...]
-      for (const [idxStr, topicList] of Object.entries(parsed.labels || {})) {
-        const link = items[parseInt(idxStr)]?.link;
-        if (link) labels[link] = topicList;
-      }
-    } catch (err) {
-      console.error('Ticker Claude call failed:', err.message);
-    }
-  }
-
-  // Fallback: one entry per headline, linked to that exact article
-  if (!topics) {
-    topics = items.slice(0, 8).map(item => ({
-      summary: item.title.replace(/\s+/g, ' ').trim(),
-      links: [item.link],
-    }));
-  }
+  const topics = buildTickerTopics(items);
+  const labels = {};
+  items.forEach(item => {
+    const l = classifyLabels(item.title);
+    if (l.length) labels[item.link] = l;
+  });
 
   tickerCache = { topics, labels };
   tickerCacheTime = Date.now();

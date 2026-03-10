@@ -1267,8 +1267,6 @@
   function setTickerFilter(topic) {
     const isActive = tickerFilter?.summary === topic.summary;
     tickerFilter = isActive ? null : topic;
-    console.log('[ticker] filter links:', tickerFilter?.links);
-    console.log('[ticker] allItems links:', allItems.map(i => i.link));
     activeTopic = 'all';
     activeSource = '';
     document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
