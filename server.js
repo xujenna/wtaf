@@ -212,9 +212,9 @@ const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 const LABEL_KEYWORDS = {
   politics: ['trump','biden','congress','senate','white house','election','democrat','republican','government','president','political','policy','vote','legislation','supreme court'],
   nyc:      ['new york','nyc','brooklyn','manhattan','queens','bronx','staten island','city hall','nypd','mta','subway'],
-  culture:  ['music','film','movie','book','art','culture','entertainment','celebrity','fashion','food','restaurant','award','festival','concert','album'],
-  media:    ['media','newspaper','journalist','journalism','podcast','television','streaming','netflix','social media','twitter','facebook','instagram','youtube'],
-  science:  ['science','research','study','climate','space','nasa','health','medical','disease','environment','species','planet','discovery'],
+  culture:  ['music','film','movie','book','art ','entertainment','celebrity','fashion','food','restaurant','award','festival','concert','album'],
+  media:    ['media ','newspaper','journalist','journalism','newsletter','podcast','television','streaming','netflix','social media','twitter','facebook','instagram','youtube'],
+  science:  ['science','research','study','climate',' space ','nasa','health','medical','disease','environment','species','planet','discovery'],
   tech:     ['tech','technology',' ai ','artificial intelligence','software','apple','google','microsoft','amazon','startup','crypto','bitcoin'],
 };
 
