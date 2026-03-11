@@ -1384,9 +1384,7 @@
         if (isExcluded(item)) return false;
         if (activeSource && item.source !== activeSource) return false;
         if (activeTopic !== 'all') {
-          const claudeLabels = articleLabels[item.link];
-          const inTopic = claudeLabels ? claudeLabels.includes(activeTopic) : getTopics(item).includes(activeTopic);
-          if (!inTopic) return false;
+          if (!getTopics(item).includes(activeTopic)) return false;
         }
         if (tickerFilter) {
           if (!tickerFilter.links?.includes(item.link)) return false;
