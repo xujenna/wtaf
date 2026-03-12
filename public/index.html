@@ -161,7 +161,7 @@
     /* ── HEADER ── */
     header {
       padding: 1rem 2rem 0.4rem 2rem;
-      padding-right: 2rem;
+      padding-right: calc(320px + 2rem); /* leave room for sidebar */
       display: flex;
       align-items: flex-start;
       gap: 1rem;
@@ -531,8 +531,18 @@
     /* ── LAYOUT ── */
     main {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 320px;
       min-height: calc(100vh - 200px);
+    }
+
+    /* Full-height hairline at sidebar edge */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; bottom: 0; right: 320px;
+      width: 1px;
+      background: var(--border);
+      pointer-events: none;
     }
 
     /* ── FEED ── */
@@ -998,6 +1008,22 @@
     }
 
     /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      main { grid-template-columns: 1fr; }
+      #sidebar { display: none; }
+      body::before { display: none; }
+      #desktop-filter-row { display: none; }
+      .filter-row::after { right: 0; }
+      header { padding-right: 2rem; }
+      #menu-btn {
+        display: flex; align-items: center; background: none; border: none;
+        color: var(--text); cursor: pointer; font-size: 1.4rem;
+        padding: 0.25rem 0.4rem; line-height: 1; border-radius: 4px;
+        transition: background 0.15s; flex-shrink: 0;
+      }
+      #menu-btn:hover { background: var(--surface); }
+    }
+
     @media (max-width: 600px) {
       html, body { overflow-x: hidden; }
       header { padding: 0.75rem 1rem; }
@@ -1032,12 +1058,39 @@
 </header>
 
 
+<!-- Desktop topic filter (hidden on mobile) -->
+<div class="filter-row" id="desktop-filter-row">
+  <button class="filter-btn active" data-topic="all"><span class="filter-btn-width" aria-hidden="true">All</span><span class="filter-btn-text">All</span></button>
+  <button class="filter-btn" data-topic="nyc"><span class="filter-btn-width" aria-hidden="true">NYC</span><span class="filter-btn-text">NYC</span></button>
+  <button class="filter-btn" data-topic="culture"><span class="filter-btn-width" aria-hidden="true">Culture</span><span class="filter-btn-text">Culture</span></button>
+  <button class="filter-btn" data-topic="tech"><span class="filter-btn-width" aria-hidden="true">Tech</span><span class="filter-btn-text">Tech</span></button>
+  <button class="filter-btn" data-topic="media"><span class="filter-btn-width" aria-hidden="true">Media</span><span class="filter-btn-text">Media</span></button>
+  <button class="filter-btn" data-topic="science"><span class="filter-btn-width" aria-hidden="true">Science</span><span class="filter-btn-text">Science</span></button>
+  <button class="filter-btn" data-topic="politics"><span class="filter-btn-width" aria-hidden="true">Politics</span><span class="filter-btn-text">Politics</span></button>
+  <button class="filter-btn" id="saved-filter-btn"><span class="filter-btn-width" aria-hidden="true">Saved</span><span class="filter-btn-text">Saved</span></button>
+  <span class="filter-meta">
+    <span id="result-count"></span>
+    <span id="last-updated"></span>
+  </span>
+</div>
+
 <main>
   <div id="feed">
     <div id="loading"><div class="spinner"></div>Fetching feeds…</div>
     <div id="error-msg" style="display:none"></div>
     <div id="items"></div>
   </div>
+
+  <aside id="sidebar">
+    <div id="sidebar-add-source">
+      <form id="add-source-form" autocomplete="off">
+        <input id="add-source-input" type="url" placeholder="Paste RSS feed URL…" aria-label="RSS feed URL" />
+        <button id="add-source-btn" type="submit">Add</button>
+      </form>
+      <p id="add-source-status"></p>
+    </div>
+    <div id="sidebar-sources"></div>
+  </aside>
 </main>
 
 <!-- ── BURGER MENU ── -->
@@ -1045,8 +1098,8 @@
 <div id="menu-panel" aria-label="Filters and sources">
   <div id="menu-panel-header">
     <div id="menu-meta">
-      <span id="result-count"></span>
-      <span id="last-updated"></span>
+      <span id="menu-result-count"></span>
+      <span id="menu-last-updated"></span>
     </div>
     <button id="menu-close" aria-label="Close menu">×</button>
   </div>
@@ -1067,20 +1120,20 @@
     <button class="filter-btn" data-topic="media"><span class="filter-btn-width" aria-hidden="true">Media</span><span class="filter-btn-text">Media</span></button>
     <button class="filter-btn" data-topic="science"><span class="filter-btn-width" aria-hidden="true">Science</span><span class="filter-btn-text">Science</span></button>
     <button class="filter-btn" data-topic="politics"><span class="filter-btn-width" aria-hidden="true">Politics</span><span class="filter-btn-text">Politics</span></button>
-    <button class="filter-btn" id="saved-filter-btn"><span class="filter-btn-width" aria-hidden="true">Saved</span><span class="filter-btn-text">Saved</span></button>
+    <button class="filter-btn" id="menu-saved-filter-btn"><span class="filter-btn-width" aria-hidden="true">Saved</span><span class="filter-btn-text">Saved</span></button>
   </div>
 
   <!-- Sources -->
   <div class="menu-section-label">Sources</div>
   <div id="menu-sources-inner">
-    <div id="sidebar-add-source">
-      <form id="add-source-form" autocomplete="off">
-        <input id="add-source-input" type="url" placeholder="Paste RSS feed URL…" aria-label="RSS feed URL" />
-        <button id="add-source-btn" type="submit">Add</button>
+    <div id="menu-sidebar-add-source">
+      <form id="menu-add-source-form" autocomplete="off">
+        <input id="menu-add-source-input" type="url" placeholder="Paste RSS feed URL…" aria-label="RSS feed URL" />
+        <button id="menu-add-source-btn" type="submit">Add</button>
       </form>
-      <p id="add-source-status"></p>
+      <p id="menu-add-source-status"></p>
     </div>
-    <div id="sidebar-sources"></div>
+    <div id="menu-sidebar-sources"></div>
   </div>
 </div>
 
@@ -1348,14 +1401,16 @@
       `;
     }).join('');
 
-    section.innerHTML = customSection + catSections;
+    const html = customSection + catSections;
+    section.innerHTML = html;
+    const menuSection = document.getElementById('menu-sidebar-sources');
+    if (menuSection) menuSection.innerHTML = html;
   }
 
-  document.getElementById('sidebar-sources').addEventListener('click', (e) => {
+  function handleSourcesClick(e) {
     const removeBtn = e.target.closest('.source-remove');
     if (removeBtn) {
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault(); e.stopPropagation();
       const item = removeBtn.closest('.source-list-item');
       const name = item?.dataset.sourceName;
       const customFeedUrl = item?.dataset.customFeedUrl;
@@ -1369,27 +1424,41 @@
           allItems = allItems.filter(i => i.source !== name);
         }
         if (activeSource === name) activeSource = '';
-        buildSidebar();
-        renderItems();
+        buildSidebar(); renderItems();
       }
       return;
     }
     if (e.target.closest('.source-list-name a')) return;
     const item = e.target.closest('.source-list-item');
-    if (item) {
-      e.preventDefault();
-      const name = item.dataset.sourceName;
-      if (name) filterBySource(name);
-    }
-  });
-
-  document.getElementById('sidebar-sources').addEventListener('keydown', (e) => {
+    if (item) { e.preventDefault(); const name = item.dataset.sourceName; if (name) { filterBySource(name); closeMenu(); } }
+  }
+  function handleSourcesKeydown(e) {
     if (e.target.closest('.source-remove')) return;
     const item = e.target.closest('.source-list-item');
     if (!item || (e.key !== 'Enter' && e.key !== ' ')) return;
     e.preventDefault();
     const name = item.dataset.sourceName;
-    if (name) filterBySource(name);
+    if (name) { filterBySource(name); closeMenu(); }
+  }
+
+  document.getElementById('sidebar-sources').addEventListener('click', handleSourcesClick);
+  document.getElementById('sidebar-sources').addEventListener('keydown', handleSourcesKeydown);
+  document.getElementById('menu-sidebar-sources').addEventListener('click', handleSourcesClick);
+  document.getElementById('menu-sidebar-sources').addEventListener('keydown', handleSourcesKeydown);
+
+  // Menu saved button delegates to desktop saved button
+  document.getElementById('menu-saved-filter-btn').addEventListener('click', () => {
+    document.getElementById('saved-filter-btn').click();
+    closeMenu();
+  });
+
+  // Menu add-source form delegates to desktop form
+  document.getElementById('menu-add-source-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const menuInput = document.getElementById('menu-add-source-input');
+    document.getElementById('add-source-input').value = menuInput.value;
+    menuInput.value = '';
+    document.getElementById('add-source-form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   });
 
   // ── Fetch
@@ -1431,8 +1500,10 @@
         });
       }
 
-      document.getElementById('last-updated').textContent =
-        `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      const updatedText = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      document.getElementById('last-updated').textContent = updatedText;
+      const menuUpdated = document.getElementById('menu-last-updated');
+      if (menuUpdated) menuUpdated.textContent = updatedText;
 
       const existing = document.getElementById('failed-notice');
       if (existing) existing.remove();
@@ -1623,9 +1694,11 @@
 
     updateFilterVisibility();
 
-    document.getElementById('result-count').textContent = filtered.length
-      ? `${filtered.length.toLocaleString()} item${filtered.length === 1 ? '' : 's'}`
-      : '';
+    const countText = filtered.length
+      ? `${filtered.length.toLocaleString()} item${filtered.length === 1 ? '' : 's'}` : '';
+    document.getElementById('result-count').textContent = countText;
+    const menuCount = document.getElementById('menu-result-count');
+    if (menuCount) menuCount.textContent = countText;
 
     const container = document.getElementById('items');
 
