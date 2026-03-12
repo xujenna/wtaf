@@ -238,6 +238,7 @@
     #theme-toggle svg { width: 1.15rem; height: 1.15rem; }
 
     #menu-btn {
+      display: none;
       background: none;
       border: none;
       color: var(--text);
@@ -1569,16 +1570,21 @@
       track.appendChild(sep);
     }
 
-    // Build enough copies so the total width exceeds the viewport (for seamless loop)
+    // Build one set, then repeat topics until that set fills the viewport,
+    // then add a second identical set for seamless looping.
     buildSet();
     bar.style.display = 'flex';
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      const oneSetWidth = track.scrollWidth;
-      // Need at least 2 full copies wider than the viewport so the seam is never visible
-      const copies = Math.max(2, Math.ceil(window.innerWidth * 2 / oneSetWidth) + 1);
-      for (let i = 1; i < copies; i++) buildSet();
-      const pct = (100 / copies).toFixed(4);
-      track.style.setProperty('--scroll-pct', `-${pct}%`);
+      const singleSetWidth = track.scrollWidth;
+      // Repeat topics within each set until the set is wider than the viewport
+      const repsPerSet = Math.max(1, Math.ceil((window.innerWidth + 1) / singleSetWidth));
+      // Clear and rebuild with 2 sets, each containing repsPerSet repetitions
+      track.innerHTML = '';
+      for (let set = 0; set < 2; set++) {
+        for (let r = 0; r < repsPerSet; r++) buildSet();
+      }
+      const oneSetWidth = repsPerSet * singleSetWidth;
+      track.style.setProperty('--scroll-pct', '-50%');
       const tickerPxPerSec = 50;
       track.style.animationDuration = (oneSetWidth / tickerPxPerSec).toFixed(1) + 's';
     }));
@@ -1725,8 +1731,7 @@
     document.querySelectorAll('.ticker-item').forEach(el => el.classList.remove('ticker-active'));
     document.getElementById('saved-filter-btn').classList.remove('active');
     document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
-    const btn = document.querySelector(`.filter-btn[data-topic="${topic}"]`);
-    if (btn) btn.classList.add('active');
+    document.querySelectorAll(`.filter-btn[data-topic="${topic}"]`).forEach(b => b.classList.add('active'));
     activeTopic = topic;
     renderItems();
   }
@@ -1738,7 +1743,7 @@
       document.querySelectorAll('.ticker-item').forEach(el => el.classList.remove('ticker-active'));
       document.getElementById('saved-filter-btn').classList.remove('active');
       document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      document.querySelectorAll(`.filter-btn[data-topic="${btn.dataset.topic}"]`).forEach(b => b.classList.add('active'));
       activeTopic = btn.dataset.topic;
       renderItems();
       closeMenu();
