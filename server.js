@@ -285,12 +285,12 @@ Return ONLY valid JSON. Example:
 
   // Validate topics: use indices to reliably map back to item links
   const topics = (result.topics || [])
-    .filter(t => t.summary && Array.isArray(t.indices) && t.indices.length >= 2)
+    .filter(t => t.summary && Array.isArray(t.indices) && t.indices.length >= 3)
     .map(t => ({
       summary: t.summary,
       links: t.indices.map(i => items[parseInt(i)]?.link).filter(Boolean),
     }))
-    .filter(t => t.links.length >= 2)
+    .filter(t => t.links.length >= 3)
     .slice(0, 7);
 
   return { labels, topics };
