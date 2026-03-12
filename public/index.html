@@ -161,7 +161,7 @@
     /* ── HEADER ── */
     header {
       padding: 1rem 2rem 0.4rem 2rem;
-      padding-right: calc(320px + 2rem); /* leave room for sidebar */
+      padding-right: 2rem;
       display: flex;
       align-items: flex-start;
       gap: 1rem;
@@ -236,6 +236,145 @@
       color: var(--accent);
     }
     #theme-toggle svg { width: 1.15rem; height: 1.15rem; }
+
+    #menu-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.5rem;
+      padding: 0.25rem 0.4rem;
+      line-height: 1;
+      border-radius: 4px;
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    #menu-btn:hover { background: var(--surface); }
+
+    /* ── BURGER MENU ── */
+    #menu-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1001;
+      background: rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    #menu-overlay.open { opacity: 1; pointer-events: auto; }
+
+    #menu-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 320px;
+      max-width: 92vw;
+      height: 100vh;
+      z-index: 1002;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    #menu-panel.open { transform: translateX(0); }
+
+    #menu-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 1;
+      gap: 0.75rem;
+    }
+    #menu-meta {
+      font-size: 0.72rem;
+      font-family: 'Verlag', sans-serif;
+      color: var(--muted);
+      display: flex;
+      gap: 0.4rem;
+      flex: 1;
+      min-width: 0;
+    }
+    #menu-meta #last-updated { white-space: nowrap; }
+
+    #menu-close {
+      flex-shrink: 0;
+      width: 2rem;
+      height: 2rem;
+      border: none;
+      background: var(--border);
+      color: var(--text);
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    #menu-close:hover { background: var(--text); color: var(--bg); }
+
+    .menu-section-label {
+      font-size: 0.68rem;
+      font-family: 'Verlag', sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      padding: 1rem 1.25rem 0.4rem;
+    }
+
+    #menu-ticker-section { display: none; }
+    #menu-ticker-list {
+      padding: 0 0.75rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+    .menu-ticker-btn {
+      background: none;
+      border: none;
+      text-align: left;
+      font: inherit;
+      font-size: 0.85rem;
+      font-family: 'Verlag', sans-serif;
+      color: var(--text);
+      padding: 0.4rem 0.5rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.1s;
+      line-height: 1.4;
+    }
+    .menu-ticker-btn:hover { background: var(--surface); }
+    .menu-ticker-btn.ticker-active { color: var(--accent); background: var(--surface); }
+
+    #menu-filter-topics {
+      padding: 0 0.75rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+    #menu-filter-topics .filter-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border-radius: 5px;
+      padding: 0.4rem 0.5rem 0.4rem 1.75rem;
+    }
+    #menu-filter-topics .filter-btn::before { left: 0.5rem; }
+    #menu-filter-topics .filter-btn .filter-btn-text { left: 1.75rem; }
+
+    #menu-sources-inner {
+      padding: 0 1.25rem 1.5rem;
+    }
 
     /* ── TOPIC FILTER ── */
     /* ── TICKER ── */
@@ -392,20 +531,8 @@
     /* ── LAYOUT ── */
     main {
       display: grid;
-      grid-template-columns: 1fr 320px;
+      grid-template-columns: 1fr;
       min-height: calc(100vh - 200px);
-    }
-
-    /* Full-height hairline at sidebar edge */
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      right: 320px;
-      width: 1px;
-      background: var(--border);
-      pointer-events: none;
     }
 
     /* ── FEED ── */
@@ -871,18 +998,9 @@
     }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 860px) {
-      main { grid-template-columns: 1fr; }
-      #sidebar { display: none; }
-      body::before { display: none; }
-      .filter-row::after { right: 0; }
-      header { padding-right: 2rem; }
-      .filter-row { padding-right: 2rem; }
-    }
-
     @media (max-width: 600px) {
       html, body { overflow-x: hidden; }
-      header, .filter-row { padding: 0.75rem 1rem; }
+      header { padding: 0.75rem 1rem; }
       .site-title { font-size: 4.5rem; }
       #subtitle { white-space: normal; }
       .feed-item { padding: 1rem; }
@@ -909,25 +1027,10 @@
         <span id="subtitle">(sources for bad times)</span>
       </div>
     </div>
+    <button id="menu-btn" aria-label="Open filters and sources">☰</button>
   </div>
 </header>
 
-
-<!-- Topic filter -->
-<div class="filter-row">
-  <button class="filter-btn active" data-topic="all"><span class="filter-btn-width" aria-hidden="true">All</span><span class="filter-btn-text">All</span></button>
-  <button class="filter-btn" data-topic="nyc"><span class="filter-btn-width" aria-hidden="true">NYC</span><span class="filter-btn-text">NYC</span></button>
-  <button class="filter-btn" data-topic="culture"><span class="filter-btn-width" aria-hidden="true">Culture</span><span class="filter-btn-text">Culture</span></button>
-  <button class="filter-btn" data-topic="tech"><span class="filter-btn-width" aria-hidden="true">Tech</span><span class="filter-btn-text">Tech</span></button>
-  <button class="filter-btn" data-topic="media"><span class="filter-btn-width" aria-hidden="true">Media</span><span class="filter-btn-text">Media</span></button>
-  <button class="filter-btn" data-topic="science"><span class="filter-btn-width" aria-hidden="true">Science</span><span class="filter-btn-text">Science</span></button>
-  <button class="filter-btn" data-topic="politics"><span class="filter-btn-width" aria-hidden="true">Politics</span><span class="filter-btn-text">Politics</span></button>
-  <button class="filter-btn" id="saved-filter-btn"><span class="filter-btn-width" aria-hidden="true">Saved</span><span class="filter-btn-text">Saved</span></button>
-  <span class="filter-meta">
-    <span id="result-count"></span>
-    <span id="last-updated"></span>
-  </span>
-</div>
 
 <main>
   <div id="feed">
@@ -935,8 +1038,41 @@
     <div id="error-msg" style="display:none"></div>
     <div id="items"></div>
   </div>
+</main>
 
-  <aside id="sidebar">
+<!-- ── BURGER MENU ── -->
+<div id="menu-overlay"></div>
+<div id="menu-panel" aria-label="Filters and sources">
+  <div id="menu-panel-header">
+    <div id="menu-meta">
+      <span id="result-count"></span>
+      <span id="last-updated"></span>
+    </div>
+    <button id="menu-close" aria-label="Close menu">×</button>
+  </div>
+
+  <!-- Ticker topics (populated by JS) -->
+  <div id="menu-ticker-section">
+    <div class="menu-section-label">Today</div>
+    <div id="menu-ticker-list"></div>
+  </div>
+
+  <!-- Topic filters -->
+  <div class="menu-section-label">Topics</div>
+  <div id="menu-filter-topics">
+    <button class="filter-btn active" data-topic="all"><span class="filter-btn-width" aria-hidden="true">All</span><span class="filter-btn-text">All</span></button>
+    <button class="filter-btn" data-topic="nyc"><span class="filter-btn-width" aria-hidden="true">NYC</span><span class="filter-btn-text">NYC</span></button>
+    <button class="filter-btn" data-topic="culture"><span class="filter-btn-width" aria-hidden="true">Culture</span><span class="filter-btn-text">Culture</span></button>
+    <button class="filter-btn" data-topic="tech"><span class="filter-btn-width" aria-hidden="true">Tech</span><span class="filter-btn-text">Tech</span></button>
+    <button class="filter-btn" data-topic="media"><span class="filter-btn-width" aria-hidden="true">Media</span><span class="filter-btn-text">Media</span></button>
+    <button class="filter-btn" data-topic="science"><span class="filter-btn-width" aria-hidden="true">Science</span><span class="filter-btn-text">Science</span></button>
+    <button class="filter-btn" data-topic="politics"><span class="filter-btn-width" aria-hidden="true">Politics</span><span class="filter-btn-text">Politics</span></button>
+    <button class="filter-btn" id="saved-filter-btn"><span class="filter-btn-width" aria-hidden="true">Saved</span><span class="filter-btn-text">Saved</span></button>
+  </div>
+
+  <!-- Sources -->
+  <div class="menu-section-label">Sources</div>
+  <div id="menu-sources-inner">
     <div id="sidebar-add-source">
       <form id="add-source-form" autocomplete="off">
         <input id="add-source-input" type="url" placeholder="Paste RSS feed URL…" aria-label="RSS feed URL" />
@@ -945,8 +1081,8 @@
       <p id="add-source-status"></p>
     </div>
     <div id="sidebar-sources"></div>
-  </aside>
-</main>
+  </div>
+</div>
 
 <div id="lightbox" aria-hidden="true">
   <div id="lightbox-backdrop"></div>
@@ -1075,6 +1211,18 @@
   const HIDE_ICON     = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
   const BOOKMARK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
   const BOOKMARK_FILLED = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
+
+  // ── Burger menu
+  const menuBtn     = document.getElementById('menu-btn');
+  const menuPanel   = document.getElementById('menu-panel');
+  const menuOverlay = document.getElementById('menu-overlay');
+
+  function openMenu()  { menuPanel.classList.add('open'); menuOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function closeMenu() { menuPanel.classList.remove('open'); menuOverlay.classList.remove('open'); document.body.style.overflow = ''; }
+
+  menuBtn.addEventListener('click', openMenu);
+  menuOverlay.addEventListener('click', closeMenu);
+  document.getElementById('menu-close').addEventListener('click', closeMenu);
 
   // ── Theme
   const THEME_KEY = 'wtaf-theme';
@@ -1317,6 +1465,7 @@
       if (labels) articleLabels = labels;
       if (!topics?.length) return;
       renderTicker(topics);
+      renderMenuTicker(topics);
       renderItems(); // re-render now that labels are available
     } catch { /* ticker is decorative, fail silently */ }
   }
@@ -1362,6 +1511,21 @@
       const tickerPxPerSec = 50;
       track.style.animationDuration = (oneSetWidth / tickerPxPerSec).toFixed(1) + 's';
     }));
+  }
+
+  function renderMenuTicker(topics) {
+    const section = document.getElementById('menu-ticker-section');
+    const list    = document.getElementById('menu-ticker-list');
+    if (!topics?.length) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    list.innerHTML = '';
+    topics.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'menu-ticker-btn ticker-item';
+      btn.textContent = t.summary;
+      btn.addEventListener('click', () => { setTickerFilter(t); closeMenu(); });
+      list.appendChild(btn);
+    });
   }
 
   function setTickerFilter(topic) {
@@ -1504,6 +1668,7 @@
       btn.classList.add('active');
       activeTopic = btn.dataset.topic;
       renderItems();
+      closeMenu();
     });
   });
 
@@ -1689,6 +1854,7 @@
       if (activeTopicBtn) activeTopicBtn.classList.add('active');
     }
     renderItems();
+    closeMenu();
   });
 
   // ── Helpers
