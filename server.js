@@ -240,7 +240,7 @@ async function analyzeWithClaude(items) {
   }).join('\n');
 
   const stream = anthropic.messages.stream({
-    model: 'claude-opus-4-6',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 2048,
     system: `You analyze a set of recent news articles. Return a JSON object with two fields:
 
@@ -408,7 +408,7 @@ function buildTickerTopics(items) {
 
 let tickerCache = null;
 let tickerCacheTime = null;
-const TICKER_TTL = 30 * 60 * 1000; // 30 minutes
+const TICKER_TTL = 2 * 60 * 60 * 1000; // 2 hours
 
 app.get('/api/sources', (req, res) => {
   res.json(SOURCES.map(({ name, url, description, category, feed }) => ({
