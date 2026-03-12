@@ -268,19 +268,19 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 320px;
-      max-width: 92vw;
-      height: 100vh;
+      right: 0;
+      width: 100%;
+      max-height: 80vh;
       z-index: 1002;
       background: var(--bg);
-      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
       overflow-y: auto;
-      transform: translateX(-100%);
+      transform: translateY(-100%);
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       flex-direction: column;
     }
-    #menu-panel.open { transform: translateX(0); }
+    #menu-panel.open { transform: translateY(0); }
 
     #menu-panel-header {
       display: flex;
@@ -1692,7 +1692,13 @@
           if (!getItemTopics(item).includes(activeTopic)) return false;
         }
         if (tickerFilter) {
-          if (!tickerFilter.links?.includes(item.link)) return false;
+          if (tickerFilter.links?.includes(item.link)) return true;
+          // Also include articles sharing topic labels with the ticker's matched articles
+          const tickerTopics = new Set(
+            (tickerFilter.links || []).flatMap(link => articleLabels[link] || [])
+          );
+          if (tickerTopics.size > 0 && getItemTopics(item).some(t => tickerTopics.has(t))) return true;
+          return false;
         }
         return true;
       });
