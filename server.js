@@ -252,12 +252,14 @@ async function analyzeWithClaude(items) {
   - science: scientific research, medicine, health, climate, environment, space, biology, animals
   Only label clearly relevant topics. Be conservative. Omit articles with no matching label.
 
-"topics": array of up to 7 story threads, each with 2+ articles. For each thread:
-  - "summary": a concise 3–6 word label describing the story (NOT a headline — synthesize the theme, e.g. "Trump Iran Policy Shifts" not the full title)
-  - "links": array of article URLs for that thread
+"topics": array of up to 7 story threads, each covering 2+ articles about the SAME specific story. For each thread:
+  - "summary": a concise 3–6 word label synthesizing the theme (NOT a headline — e.g. "Trump Iran Policy Shifts", NOT "A Timeline of Trump's Confusing Iran War Timetables"). Must be clearly distinct from other topic summaries.
+  - "indices": array of article index numbers (integers) that belong to this thread
+
+Only group articles that genuinely cover the same event or ongoing story. Do NOT group articles just because they share a common word like "home", "shooting", "says", etc.
 
 Return ONLY valid JSON. Example:
-{"labels":{"0":["culture"],"3":["politics","nyc"]},"topics":[{"summary":"Trump Iran War Plans","links":["https://...","https://..."]}]}`,
+{"labels":{"0":["culture"],"3":["politics","nyc"]},"topics":[{"summary":"Trump Iran War Plans","indices":[3,7]}]}`,
     messages: [{ role: 'user', content: articleList }],
   });
 
@@ -280,9 +282,14 @@ Return ONLY valid JSON. Example:
     }
   }
 
-  // Validate topics array
+  // Validate topics: use indices to reliably map back to item links
   const topics = (result.topics || [])
-    .filter(t => t.summary && Array.isArray(t.links) && t.links.length >= 2)
+    .filter(t => t.summary && Array.isArray(t.indices) && t.indices.length >= 2)
+    .map(t => ({
+      summary: t.summary,
+      links: t.indices.map(i => items[parseInt(i)]?.link).filter(Boolean),
+    }))
+    .filter(t => t.links.length >= 2)
     .slice(0, 7);
 
   return { labels, topics };
@@ -305,6 +312,16 @@ const TICKER_STOP = new Set([
   // colors — too generic as standalone entity topics
   'white','black','red','blue','green','gray','grey','brown','yellow',
   'orange','purple','pink','gold','silver',
+  // generic nouns that look capitalized in titles but aren't specific entities
+  'home','house','man','woman','men','women','people','person','family',
+  'city','town','state','country','world','nation','government','court',
+  'shooting','killed','dead','death','dies','died','shot','arrested',
+  'accident','crash','attack','fire','flood','storm','crisis','threat',
+  'silence','breaks','break','secret','truth','story','life','times',
+  'says','told','calls','wants','needs','gets','puts','wins','loses',
+  'news','report','deal','talks','vote','bill','law','rule','case',
+  'top','best','worst','big','small','high','old','young','late',
+  'inside','behind','amid','ahead','against','across','beyond',
 ]);
 
 // Pick the most central headline from the group as the topic summary
