@@ -253,7 +253,7 @@ async function analyzeWithClaude(items) {
   - science: scientific research, medicine, health, climate, environment, space, biology, animals
   Only label clearly relevant topics. Be conservative. Omit articles with no matching label.
 
-"topics": array of up to 7 story threads, each covering 2+ articles about the SAME specific story. For each thread:
+"topics": array of up to 10 story threads, each covering 2+ articles about the SAME specific story. For each thread:
   - "summary": a concise 3–6 word label synthesizing the theme (NOT a headline — e.g. "Trump Iran Policy Shifts", NOT "A Timeline of Trump's Confusing Iran War Timetables"). Must be clearly distinct from other topic summaries.
   - "indices": array of article index numbers (integers) that belong to this thread
 
@@ -291,7 +291,7 @@ Return ONLY valid JSON. Example:
       links: t.indices.map(i => items[parseInt(i)]?.link).filter(Boolean),
     }))
     .filter(t => t.links.length >= 2)
-    .slice(0, 7);
+    .slice(0, 10);
 
   return { labels, topics };
 }
@@ -394,7 +394,7 @@ function buildTickerTopics(items) {
   const assigned = new Set();
   const topics = [];
   for (const [term, idxs] of candidates) {
-    if (topics.length >= 7) break;
+    if (topics.length >= 10) break;
     const fresh = idxs.filter(i => !assigned.has(i));
     if (fresh.length < 2) continue;
     topics.push({
@@ -544,7 +544,7 @@ app.get('/api/ticker', async (req, res) => {
   }
 
   // Use most recent items from whatever's in the cache
-  const items = cache.slice(0, 30);
+  const items = cache.slice(0, 60);
   if (!items.length) return res.json({ topics: null, labels: {} });
 
   // Try one Claude call for both topic grouping+summaries and article classification
