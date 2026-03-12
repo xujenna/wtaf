@@ -170,7 +170,7 @@
 
     .header-title-row {
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       gap: 0.75rem;
       flex-wrap: wrap;
     }
@@ -178,7 +178,7 @@
     /* Wrap keeps subtitle OUTSIDE the 12rem box so it never inherits/squishes */
     .site-title-group {
       display: inline-flex;
-      align-items: flex-end;
+      align-items: center; /* stack vertically centered with title */
       flex-wrap: wrap;
       gap: 0 0.5rem;
     }
@@ -196,21 +196,28 @@
 
     .site-title span { color: var(--text); }
 
-    /* Subtitle is sibling of .site-title — not inside 12rem context */
+    /* Toggle stacked above subtitle, aligned with title row */
+    .header-subtitle-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+      align-self: center;
+      margin-left: 0.75em;
+    }
+
+    /* Subtitle — not inside 12rem context */
     #subtitle {
-      display: inline-block;
+      display: block;
       font-size: 1.15rem;
       line-height: 1.3;
       color: var(--muted);
       font-family: 'Verlag', sans-serif;
       white-space: nowrap;
-      /* text-transform: uppercase; */
       font-style: normal;
       font-weight: 400;
-      /* letter-spacing: 0.08em; */
-      transform: translateY(-3em);
+      text-align: right;
     }
-
 
     #theme-toggle {
       background: none;
@@ -864,9 +871,11 @@
   <div class="header-title-row">
     <div class="site-title-group">
       <div class="site-title"><span>Good news</span></div>
-      <span id="subtitle">bad times</span>
+      <div class="header-subtitle-stack">
+        <button id="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
+        <span id="subtitle">(sources for bad times)</span>
+      </div>
     </div>
-    <button id="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
   </div>
 </header>
 
