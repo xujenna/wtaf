@@ -1441,8 +1441,10 @@
       filtered = getSavedItems();
     } else {
       const hidden = getHiddenItems();
+      const read = getReadItems();
       filtered = allItems.filter(item => {
         if (hidden.has(item.link)) return false;
+        if (read.has(item.link)) return false;
         if (isExcluded(item)) return false;
         if (activeSource && item.source !== activeSource) return false;
         if (activeTopic !== 'all') {
