@@ -1336,8 +1336,12 @@
   }
 
   // ── Render
+  function getItemTopics(item) {
+    return articleLabels[item.link] || getTopics(item);
+  }
+
   function renderItem(item) {
-    const itemTopics = getTopics(item);
+    const itemTopics = getItemTopics(item);
     const topicTags  = itemTopics.map(t =>
       `<span class="topic-tag topic-${t}" onclick="filterByTopic('${t}')" title="Filter to ${TOPICS[t].label}">${TOPICS[t].label}</span>`
     ).join('');
@@ -1384,7 +1388,7 @@
         if (isExcluded(item)) return false;
         if (activeSource && item.source !== activeSource) return false;
         if (activeTopic !== 'all') {
-          if (!getTopics(item).includes(activeTopic)) return false;
+          if (!getItemTopics(item).includes(activeTopic)) return false;
         }
         if (tickerFilter) {
           if (!tickerFilter.links?.includes(item.link)) return false;
