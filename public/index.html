@@ -630,6 +630,7 @@
     .item-action-btn:hover { color: var(--text); }
     .item-action-btn.item-saved { color: var(--accent); opacity: 1; }
     #saved-filter-btn { --topic-color: var(--accent); }
+    #read-filter-btn, #menu-read-filter-btn { --topic-color: #94a3b8; }
 
     .source-badge {
       position: relative;
@@ -1069,6 +1070,7 @@
   <button class="filter-btn" data-topic="science"><span class="filter-btn-width" aria-hidden="true">Science</span><span class="filter-btn-text">Science</span></button>
   <button class="filter-btn" data-topic="politics"><span class="filter-btn-width" aria-hidden="true">Politics</span><span class="filter-btn-text">Politics</span></button>
   <button class="filter-btn" id="saved-filter-btn"><span class="filter-btn-width" aria-hidden="true">Saved</span><span class="filter-btn-text">Saved</span></button>
+  <button class="filter-btn" id="read-filter-btn"><span class="filter-btn-width" aria-hidden="true">Read</span><span class="filter-btn-text">Read</span></button>
   <span class="filter-meta">
     <span id="result-count"></span>
     <span id="last-updated"></span>
@@ -1122,6 +1124,7 @@
     <button class="filter-btn" data-topic="science"><span class="filter-btn-width" aria-hidden="true">Science</span><span class="filter-btn-text">Science</span></button>
     <button class="filter-btn" data-topic="politics"><span class="filter-btn-width" aria-hidden="true">Politics</span><span class="filter-btn-text">Politics</span></button>
     <button class="filter-btn" id="menu-saved-filter-btn"><span class="filter-btn-width" aria-hidden="true">Saved</span><span class="filter-btn-text">Saved</span></button>
+    <button class="filter-btn" id="menu-read-filter-btn"><span class="filter-btn-width" aria-hidden="true">Read</span><span class="filter-btn-text">Read</span></button>
   </div>
 
   <!-- Sources -->
@@ -1209,6 +1212,7 @@
   let activeTopic  = 'all';
   let activeSource = '';
   let viewSaved  = false;
+  let viewRead   = false;
 
   const HIDDEN_SOURCES_KEY = 'wtaf-hidden-sources';
   function getHiddenSourceNames() {
@@ -1610,6 +1614,7 @@
     tickerFilter = isActive ? null : topic;
     activeTopic = 'all';
     activeSource = '';
+    viewRead = false;
     document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.ticker-item').forEach(el => {
       el.classList.toggle('ticker-active', !isActive && el.textContent === topic.summary);
@@ -1661,7 +1666,7 @@
   const MIN_FILTER_ITEMS = 3;
 
   function updateFilterVisibility() {
-    if (viewSaved) return;
+    if (viewSaved || viewRead) return;
     const hidden = getHiddenItems();
     const base = allItems.filter(item => {
       if (hidden.has(item.link)) return false;
@@ -1678,7 +1683,10 @@
 
   function renderItems() {
     let filtered;
-    if (viewSaved) {
+    if (viewRead) {
+      const read = getReadItems();
+      filtered = allItems.filter(item => read.has(item.link));
+    } else if (viewSaved) {
       filtered = getSavedItems();
     } else {
       const hidden = getHiddenItems();
@@ -1726,6 +1734,7 @@
   function filterBySource(name) {
     activeSource = activeSource === name ? '' : name;
     tickerFilter = null;
+    viewRead = false;
     document.querySelectorAll('.ticker-item').forEach(el => el.classList.remove('ticker-active'));
     buildSidebar();
     renderItems();
@@ -1733,6 +1742,7 @@
 
   function filterByTopic(topic) {
     viewSaved = false;
+    viewRead = false;
     tickerFilter = null;
     document.querySelectorAll('.ticker-item').forEach(el => el.classList.remove('ticker-active'));
     document.getElementById('saved-filter-btn').classList.remove('active');
@@ -1745,6 +1755,7 @@
   document.querySelectorAll('.filter-btn[data-topic]').forEach(btn => {
     btn.addEventListener('click', () => {
       viewSaved = false;
+      viewRead = false;
       tickerFilter = null;
       document.querySelectorAll('.ticker-item').forEach(el => el.classList.remove('ticker-active'));
       document.getElementById('saved-filter-btn').classList.remove('active');
@@ -1929,6 +1940,9 @@
   const savedFilterBtn = document.getElementById('saved-filter-btn');
   savedFilterBtn.addEventListener('click', () => {
     viewSaved = !viewSaved;
+    viewRead = false;
+    document.getElementById('read-filter-btn').classList.remove('active');
+    document.getElementById('menu-read-filter-btn').classList.remove('active');
     savedFilterBtn.classList.toggle('active', viewSaved);
     if (viewSaved) {
       // deactivate topic filters while in saved view
@@ -1939,6 +1953,28 @@
     }
     renderItems();
     closeMenu();
+  });
+
+  // ── Read filter button
+  const readFilterBtn = document.getElementById('read-filter-btn');
+  readFilterBtn.addEventListener('click', () => {
+    viewRead = !viewRead;
+    viewSaved = false;
+    savedFilterBtn.classList.remove('active');
+    document.getElementById('menu-saved-filter-btn').classList.remove('active');
+    readFilterBtn.classList.toggle('active', viewRead);
+    document.getElementById('menu-read-filter-btn').classList.toggle('active', viewRead);
+    if (!viewRead) {
+      const activeTopicBtn = document.querySelector(`.filter-btn[data-topic="${activeTopic}"]`);
+      if (activeTopicBtn) activeTopicBtn.classList.add('active');
+    } else {
+      document.querySelectorAll('.filter-btn[data-topic]').forEach(b => b.classList.remove('active'));
+    }
+    renderItems();
+    closeMenu();
+  });
+  document.getElementById('menu-read-filter-btn').addEventListener('click', () => {
+    readFilterBtn.click();
   });
 
   // ── Helpers
