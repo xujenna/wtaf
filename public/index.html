@@ -565,7 +565,7 @@
 
     /* ── LIGHTBOX ── */
     #lightbox {
-      display: none;
+      display: flex;
       position: fixed;
       inset: 0;
       z-index: 1000;
@@ -574,8 +574,14 @@
       justify-content: center;
       padding: 2rem;
       box-sizing: border-box;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
     }
-    #lightbox.open { display: flex; }
+    #lightbox.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
     #lightbox-backdrop {
       position: absolute;
       inset: 0;
@@ -591,6 +597,29 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+    }
+    @media (max-width: 600px) {
+      #lightbox {
+        padding: 0;
+        background: transparent;
+        transition: none;
+      }
+      #lightbox-box {
+        position: fixed;
+        inset: 0;
+        max-width: none;
+        height: 100%;
+        border-radius: 0;
+        box-shadow: -4px 0 24px rgba(0,0,0,0.25);
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      #lightbox.open #lightbox-box {
+        transform: translateX(0);
+      }
+      #lightbox-iframe {
+        border-radius: 0;
+      }
     }
     #lightbox-toolbar {
       flex-shrink: 0;
