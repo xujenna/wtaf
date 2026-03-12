@@ -228,7 +228,8 @@ function classifyLabels(title) {
 
 const VALID_TOPICS = new Set(['tech', 'politics', 'nyc', 'culture', 'media', 'science']);
 
-async function classifyWithClaude(items) {
+// One Claude call: generate ticker topic groups with real summsummaries + classify articles
+async function analyzeWithClaude(items) {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   const anthropic = new Anthropic();
 
@@ -239,20 +240,24 @@ async function classifyWithClaude(items) {
 
   const stream = anthropic.messages.stream({
     model: 'claude-opus-4-6',
-    max_tokens: 1024,
-    system: `You classify news article topics. Assign zero or more labels from this exact set: tech, politics, nyc, culture, media, science.
+    max_tokens: 2048,
+    system: `You analyze a set of recent news articles. Return a JSON object with two fields:
 
-- tech: AI, software, hardware, internet companies (Google/Apple/Meta/Amazon/Microsoft), cybersecurity, startups, crypto
-- politics: government, elections, politicians, legislation, policy, courts, war, diplomacy, international relations
-- nyc: New York City local news, NYC neighborhoods, MTA/subway, NYC-specific events or politics
-- culture: film, TV, music, art, books, fashion, food, restaurants, sports, entertainment, celebrities, awards
-- media: journalism, news organizations, newspapers, podcasts, broadcasting industry news
-- science: scientific research, medicine, health, climate, environment, space, biology, physics, nature, animals
+"labels": maps each article index (string) to an array of topic labels. Use only: tech, politics, nyc, culture, media, science.
+  - tech: AI, software, hardware, internet companies, cybersecurity, startups, crypto
+  - politics: government, elections, politicians, legislation, policy, courts, war, diplomacy
+  - nyc: New York City local news, MTA/subway, NYC neighborhoods or events
+  - culture: film, TV, music, celebrities, sports, fashion, food, books, entertainment, awards. This includes celebrity news, crime involving celebrities, reality TV, pop culture.
+  - media: ONLY news about the journalism/media industry itself — newsrooms, reporters, newspapers, broadcasting companies, media mergers, layoffs at news orgs. NOT articles that merely mention Twitter/TikTok/social media, and NOT celebrity gossip.
+  - science: scientific research, medicine, health, climate, environment, space, biology, animals
+  Only label clearly relevant topics. Be conservative. Omit articles with no matching label.
 
-Rules: Only label clearly relevant topics. Be conservative — an article can have 0 labels. Focus on the main subject.
+"topics": array of up to 7 story threads, each with 2+ articles. For each thread:
+  - "summary": a concise 3–6 word label describing the story (NOT a headline — synthesize the theme, e.g. "Trump Iran Policy Shifts" not the full title)
+  - "links": array of article URLs for that thread
 
-Return ONLY valid JSON mapping article index (string) to array of labels. Omit articles with no labels.
-Example: {"0":["tech"],"3":["politics","nyc"],"7":["culture","media"]}`,
+Return ONLY valid JSON. Example:
+{"labels":{"0":["culture"],"3":["politics","nyc"]},"topics":[{"summary":"Trump Iran War Plans","links":["https://...","https://..."]}]}`,
     messages: [{ role: 'user', content: articleList }],
   });
 
@@ -263,16 +268,24 @@ Example: {"0":["tech"],"3":["politics","nyc"],"7":["culture","media"]}`,
   const jsonMatch = textBlock.text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) return null;
 
-  const indexMap = JSON.parse(jsonMatch[0]);
+  const result = JSON.parse(jsonMatch[0]);
+
+  // Validate and clean labels
   const labels = {};
-  for (const [idx, topicList] of Object.entries(indexMap)) {
+  for (const [idx, topicList] of Object.entries(result.labels || {})) {
     const item = items[parseInt(idx)];
     if (item && Array.isArray(topicList) && topicList.length) {
       const valid = topicList.filter(t => VALID_TOPICS.has(t));
       if (valid.length) labels[item.link] = valid;
     }
   }
-  return labels;
+
+  // Validate topics array
+  const topics = (result.topics || [])
+    .filter(t => t.summary && Array.isArray(t.links) && t.links.length >= 2)
+    .slice(0, 7);
+
+  return { labels, topics };
 }
 
 // Local keyword/entity-based topic clustering (no API key needed)
@@ -516,16 +529,20 @@ app.get('/api/ticker', async (req, res) => {
   const items = cache.slice(0, 30);
   if (!items.length) return res.json({ topics: null, labels: {} });
 
-  const topics = buildTickerTopics(items);
-
-  // Try Claude classification first, fall back to keywords
-  let labels;
+  // Try one Claude call for both topic grouping+summaries and article classification
+  let topics, labels;
   try {
-    labels = await classifyWithClaude(items);
+    const result = await analyzeWithClaude(items);
+    if (result) {
+      topics = result.topics;
+      labels = result.labels;
+    }
   } catch (e) {
-    console.warn('Claude classification failed, falling back to keywords:', e.message);
-    labels = null;
+    console.warn('Claude analysis failed, falling back to keywords:', e.message);
   }
+
+  // Fallbacks
+  if (!topics) topics = buildTickerTopics(items);
   if (!labels) {
     labels = {};
     items.forEach(item => {
