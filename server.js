@@ -241,7 +241,7 @@ async function analyzeWithClaude(items) {
 
   const stream = anthropic.messages.stream({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 1024,
+    max_tokens: 2048,
     system: `You analyze a set of recent news articles. Return a JSON object with two fields:
 
 "labels": maps each article index (string) to an array of topic labels. Use only: tech, politics, nyc, culture, media, science.
