@@ -980,6 +980,22 @@
       color: var(--muted);
     }
 
+    #ticker-summary {
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Verlag', sans-serif;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+    #ticker-summary strong {
+      display: block;
+      font-size: 1rem;
+      color: var(--fg);
+      margin-bottom: 0.3rem;
+      letter-spacing: 0.01em;
+    }
+
     .spinner {
       width: 28px; height: 28px;
       border: 2px solid var(--border);
@@ -1081,6 +1097,7 @@
   <div id="feed">
     <div id="loading"><div class="spinner"></div>Fetching feeds…</div>
     <div id="error-msg" style="display:none"></div>
+    <div id="ticker-summary" style="display:none"></div>
     <div id="items"></div>
   </div>
 
@@ -1708,6 +1725,14 @@
     }
 
     updateFilterVisibility();
+
+    const summaryEl = document.getElementById('ticker-summary');
+    if (tickerFilter?.description) {
+      summaryEl.innerHTML = `<strong>${tickerFilter.summary}</strong>${tickerFilter.description}`;
+      summaryEl.style.display = '';
+    } else {
+      summaryEl.style.display = 'none';
+    }
 
     const countText = filtered.length
       ? `${filtered.length.toLocaleString()} item${filtered.length === 1 ? '' : 's'}` : '';

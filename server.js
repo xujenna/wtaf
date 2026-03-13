@@ -255,12 +255,13 @@ async function analyzeWithClaude(items) {
 
 "topics": array of up to 10 story threads, each covering 2+ articles about the SAME specific story. For each thread:
   - "summary": a concise 3–6 word label synthesizing the theme (NOT a headline — e.g. "Trump Iran Policy Shifts", NOT "A Timeline of Trump's Confusing Iran War Timetables"). Must be clearly distinct from other topic summaries.
+  - "description": 1–2 sentence neutral summary of what this story is about, written for a reader who hasn't seen the articles yet.
   - "indices": array of article index numbers (integers) that belong to this thread
 
 Only group articles that genuinely cover the same event or ongoing story. Do NOT group articles just because they share a common word like "home", "shooting", "says", etc.
 
 Return ONLY valid JSON. Example:
-{"labels":{"0":["culture"],"3":["politics","nyc"]},"topics":[{"summary":"Trump Iran War Plans","indices":[3,7]}]}`,
+{"labels":{"0":["culture"],"3":["politics","nyc"]},"topics":[{"summary":"Trump Iran War Plans","description":"The Trump administration has signaled shifting positions on potential military action against Iran, with conflicting statements from officials raising questions about U.S. policy.","indices":[3,7]}]}`,
     messages: [{ role: 'user', content: articleList }],
   });
 
@@ -288,6 +289,7 @@ Return ONLY valid JSON. Example:
     .filter(t => t.summary && Array.isArray(t.indices) && t.indices.length >= 2)
     .map(t => ({
       summary: t.summary,
+      description: t.description || '',
       links: t.indices.map(i => items[parseInt(i)]?.link).filter(Boolean),
     }))
     .filter(t => t.links.length >= 2)
