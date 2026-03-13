@@ -235,13 +235,13 @@ async function analyzeWithClaude(items) {
   const anthropic = new Anthropic();
 
   const articleList = items.map((item, i) => {
-    const snippet = item.snippet ? ` — ${item.snippet.slice(0, 150)}` : '';
+    const snippet = item.snippet ? ` — ${item.snippet.slice(0, 80)}` : '';
     return `${i}: ${item.title}${snippet}`;
   }).join('\n');
 
   const stream = anthropic.messages.stream({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 2048,
+    max_tokens: 1024,
     system: `You analyze a set of recent news articles. Return a JSON object with two fields:
 
 "labels": maps each article index (string) to an array of topic labels. Use only: tech, politics, nyc, culture, media, science.
@@ -505,7 +505,6 @@ app.get('/api/feeds', async (req, res) => {
 
   cache = items;
   cacheTime = Date.now();
-  tickerCache = null; // invalidate ticker so it re-groups with fresh articles
 
   res.json({ items, failed });
 });
@@ -546,7 +545,7 @@ app.get('/api/ticker', async (req, res) => {
   }
 
   // Use most recent items from whatever's in the cache
-  const items = cache.slice(0, 60);
+  const items = cache.slice(0, 30);
   if (!items.length) return res.json({ topics: null, labels: {} });
 
   // Try one Claude call for both topic grouping+summaries and article classification
