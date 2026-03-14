@@ -541,7 +541,7 @@
 
     const summaryEl = document.getElementById('ticker-summary');
     if (tickerFilter?.description) {
-      summaryEl.innerHTML = `<strong>${tickerFilter.summary}</strong>${tickerFilter.description}`;
+      summaryEl.innerHTML = tickerFilter.description;
       summaryEl.style.display = '';
     } else {
       summaryEl.style.display = 'none';
