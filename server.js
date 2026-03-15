@@ -1,8 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const Parser = require('rss-parser');
 const path = require('path');
 const { JSDOM } = require('jsdom');
 const { Readability } = require('@mozilla/readability');
+const Anthropic = require('@anthropic-ai/sdk').default;
 
 const app = express();
 const parser = new Parser({
@@ -103,13 +105,7 @@ const SOURCES = [
     description: 'The best tech newsroom in the world right now',
     category: 'newsroom',
   },
-  {
-    name: '1-900-HOTDOG',
-    url: 'https://www.1900hotdog.com',
-    feed: 'https://www.1900hotdog.com/feed/',
-    description: 'For anyone who still misses Cracked',
-    category: 'newsletter',
-  },
+
   {
     name: 'More Perfect Union',
     url: 'https://perfectunion.us',
@@ -195,11 +191,11 @@ const SOURCES = [
     category: 'newsroom',
   },
   {
-    name: 'Semafor',
-    url: 'https://www.semafor.com',
-    feed: 'https://www.semafor.com/rss.xml',
-    description: 'Global news with transparent reporting and sourcing',
-    category: 'newsroom',
+    name: 'Atlantic Yards Report',
+    url: 'https://atlanticyardsreport.blogspot.com',
+    feed: 'https://atlanticyardsreport.blogspot.com/feeds/posts/default?alt=rss',
+    description: 'Coverage of Atlantic Yards/Pacific Park development in Brooklyn',
+    category: 'nyc',
   },
   {
     name: 'MIT Technology Review',
@@ -214,9 +210,207 @@ let cache = null;
 let cacheTime = null;
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
+// Keyword-based label classification
+const LABEL_KEYWORDS = {
+  politics: ['trump','biden','congress','senate','white house','election','democrat','republican','government','president','political','policy','vote','legislation','supreme court'],
+  nyc:      ['new york','nyc','brooklyn','manhattan','queens','bronx','staten island','city hall','nypd','mta','subway'],
+  culture:  ['music','film','movie','book','art ','entertainment','celebrity','fashion','food','restaurant','award','festival','concert','album'],
+  media:    ['media ','newspaper','journalist','journalism','newsletter','podcast','television','streaming','netflix','social media','twitter','facebook','instagram','youtube'],
+  science:  ['science','research','study','climate',' space ','nasa','health','medical','disease','environment','species','planet','discovery'],
+  tech:     ['tech','technology',' ai ','artificial intelligence','software','apple','google','microsoft','amazon','startup','crypto','bitcoin'],
+};
+
+function classifyLabels(title) {
+  const lower = ` ${title.toLowerCase()} `;
+  return Object.entries(LABEL_KEYWORDS)
+    .filter(([, kws]) => kws.some(kw => lower.includes(kw)))
+    .map(([label]) => label);
+}
+
+const VALID_TOPICS = new Set(['tech', 'politics', 'nyc', 'culture', 'media', 'science']);
+
+// One Claude call: generate ticker topic groups with real summsummaries + classify articles
+async function analyzeWithClaude(items) {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const anthropic = new Anthropic();
+
+  const articleList = items.map((item, i) => {
+    const snippet = item.snippet ? ` — ${item.snippet.slice(0, 80)}` : '';
+    return `${i}: ${item.title}${snippet}`;
+  }).join('\n');
+
+  const stream = anthropic.messages.stream({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 1024,
+    system: `You analyze a set of recent news articles. Return a JSON object with two fields:
+
+"labels": maps each article index (string) to an array of topic labels. Use only: tech, politics, nyc, culture, media, science.
+  - tech: AI, software, hardware, internet companies, cybersecurity, startups, crypto
+  - politics: government, elections, politicians, legislation, policy, courts, war, diplomacy
+  - nyc: New York City local news, MTA/subway, NYC neighborhoods or events
+  - culture: film, TV, music, celebrities, sports, fashion, food, books, entertainment, awards. This includes celebrity news, crime involving celebrities, reality TV, pop culture.
+  - media: ONLY news about the journalism/media industry itself — newsrooms, reporters, newspapers, broadcasting companies, media mergers, layoffs at news orgs. NOT articles that merely mention Twitter/TikTok/social media, and NOT celebrity gossip.
+  - science: scientific research, medicine, health, climate, environment, space, biology, animals
+  Only label clearly relevant topics. Be conservative. Omit articles with no matching label.
+
+"topics": array of up to 10 story threads, each covering 2+ articles about the SAME specific story. For each thread:
+  - "summary": a concise 3–6 word label synthesizing the theme (NOT a headline — e.g. "Trump Iran Policy Shifts", NOT "A Timeline of Trump's Confusing Iran War Timetables"). Must be clearly distinct from other topic summaries.
+  - "description": 1–2 sentence neutral summary of what this story is about, written for a reader who hasn't seen the articles yet.
+  - "indices": array of article index numbers (integers) that belong to this thread
+
+Only group articles that genuinely cover the same event or ongoing story. Do NOT group articles just because they share a common word like "home", "shooting", "says", etc.
+
+Return ONLY valid JSON. Example:
+{"labels":{"0":["culture"],"3":["politics","nyc"]},"topics":[{"summary":"Trump Iran War Plans","description":"The Trump administration has signaled shifting positions on potential military action against Iran, with conflicting statements from officials raising questions about U.S. policy.","indices":[3,7]}]}`,
+    messages: [{ role: 'user', content: articleList }],
+  });
+
+  const response = await stream.finalMessage();
+  const textBlock = response.content.find(b => b.type === 'text');
+  if (!textBlock) return null;
+
+  const jsonMatch = textBlock.text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return null;
+
+  const result = JSON.parse(jsonMatch[0]);
+
+  // Validate and clean labels
+  const labels = {};
+  for (const [idx, topicList] of Object.entries(result.labels || {})) {
+    const item = items[parseInt(idx)];
+    if (item && Array.isArray(topicList) && topicList.length) {
+      const valid = topicList.filter(t => VALID_TOPICS.has(t));
+      if (valid.length) labels[item.link] = valid;
+    }
+  }
+
+  // Validate topics: use indices to reliably map back to item links
+  const topics = (result.topics || [])
+    .filter(t => t.summary && Array.isArray(t.indices) && t.indices.length >= 2)
+    .map(t => ({
+      summary: t.summary,
+      description: t.description || '',
+      links: t.indices.map(i => items[parseInt(i)]?.link).filter(Boolean),
+    }))
+    .filter(t => t.links.length >= 2)
+    .slice(0, 10);
+
+  return { labels, topics };
+}
+
+// Local keyword/entity-based topic clustering (no API key needed)
+const TICKER_STOP = new Set([
+  'the','a','an','is','are','was','were','to','of','in','on','at','for',
+  'with','as','by','from','that','this','it','he','she','they','we','you',
+  'and','or','but','not','be','have','has','had','do','did','does','will',
+  'would','could','should','may','might','its','their','our','his','her',
+  'what','how','when','where','who','why','which','after','before','about',
+  'more','new','says','said','over','up','out','than','so','if','can',
+  'been','just','also','now','back','two','one','all','some','still',
+  'here','amid','into','plan','year','time','week','month','day',
+  'first','last','next','many','much','most','well','while','since',
+  'between','against','other','another','very','like','make','take',
+  'report','reports','could','even','long','show','no','yes','us','uk',
+  'eu','un','mr','ms','dr','st','off','per','via','non','pro','anti',
+  // colors — too generic as standalone entity topics
+  'white','black','red','blue','green','gray','grey','brown','yellow',
+  'orange','purple','pink','gold','silver',
+  // generic nouns that look capitalized in titles but aren't specific entities
+  'home','house','man','woman','men','women','people','person','family',
+  'city','town','state','country','world','nation','government','court',
+  'shooting','killed','dead','death','dies','died','shot','arrested',
+  'accident','crash','attack','fire','flood','storm','crisis','threat',
+  'silence','breaks','break','secret','truth','story','life','times',
+  'says','told','calls','wants','needs','gets','puts','wins','loses',
+  'news','report','deal','talks','vote','bill','law','rule','case',
+  'top','best','worst','big','small','high','old','young','late',
+  'inside','behind','amid','ahead','against','across','beyond',
+]);
+
+// Pick the most central headline from the group as the topic summary
+function buildTopicSummary(term, idxs, items) {
+  if (idxs.length === 1) {
+    const t = items[idxs[0]].title;
+    return t.length > 65 ? t.slice(0, 62) + '…' : t;
+  }
+  // Score each title by how many of its significant words appear in other titles in the group
+  const getWords = title => new Set(
+    title.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/)
+      .filter(w => w.length >= 3 && !TICKER_STOP.has(w))
+  );
+  const wordSets = idxs.map(i => getWords(items[i].title));
+  const scores = idxs.map((_, pos) => {
+    let score = 0;
+    wordSets.forEach((ws, j) => {
+      if (j !== pos) wordSets[pos].forEach(w => { if (ws.has(w)) score++; });
+    });
+    return score;
+  });
+  const best = idxs[scores.indexOf(Math.max(...scores))];
+  const t = items[best].title;
+  return t.length > 65 ? t.slice(0, 62) + '…' : t;
+}
+
+function buildTickerTopics(items) {
+  const getTerms = title => {
+    const terms = new Set();
+    const words = title.split(/\s+/);
+    // Named entities: capitalized words not at position 0, min 3 chars, not stop words
+    for (let i = 1; i < words.length; i++) {
+      const w = words[i].replace(/[^a-zA-Z'-]/g, '');
+      if (w.length < 3 || TICKER_STOP.has(w.toLowerCase())) continue;
+      if (/^[A-Z]/.test(w)) {
+        terms.add(w);
+        // 2-word entity
+        if (i + 1 < words.length) {
+          const w2 = words[i + 1].replace(/[^a-zA-Z'-]/g, '');
+          if (w2.length >= 3 && /^[A-Z]/.test(w2) && !TICKER_STOP.has(w2.toLowerCase())) {
+            terms.add(`${w} ${w2}`);
+          }
+        }
+      }
+    }
+    // Long lowercase keywords
+    title.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/)
+      .filter(w => w.length >= 5 && !TICKER_STOP.has(w))
+      .forEach(w => terms.add(w));
+    return terms;
+  };
+
+  // Build inverted index: term → [article indices]
+  const index = {};
+  items.forEach((item, i) => {
+    getTerms(item.title).forEach(term => {
+      (index[term] = index[term] || []).push(i);
+    });
+  });
+
+  // Sort: multi-word entities first (more specific), then by article count
+  const candidates = Object.entries(index)
+    .filter(([, idxs]) => idxs.length >= 2)
+    .sort(([a, ai], [b, bi]) => {
+      const diff = b.split(' ').length - a.split(' ').length;
+      return diff !== 0 ? diff : bi.length - ai.length;
+    });
+
+  const assigned = new Set();
+  const topics = [];
+  for (const [term, idxs] of candidates) {
+    if (topics.length >= 10) break;
+    const fresh = idxs.filter(i => !assigned.has(i));
+    if (fresh.length < 2) continue;
+    topics.push({
+      summary: buildTopicSummary(term, idxs, items),
+      links: idxs.map(i => items[i].link),
+    });
+    fresh.forEach(i => assigned.add(i));
+  }
+  return topics;
+}
+
 let tickerCache = null;
 let tickerCacheTime = null;
-const TICKER_TTL = 30 * 60 * 1000; // 30 minutes
+const TICKER_TTL = 2 * 60 * 60 * 1000; // 2 hours
 
 app.get('/api/sources', (req, res) => {
   res.json(SOURCES.map(({ name, url, description, category, feed }) => ({
@@ -311,7 +505,6 @@ app.get('/api/feeds', async (req, res) => {
 
   cache = items;
   cacheTime = Date.now();
-  tickerCache = null; // invalidate ticker so it re-groups with fresh articles
 
   res.json({ items, failed });
 });
@@ -355,50 +548,26 @@ app.get('/api/ticker', async (req, res) => {
   const items = cache.slice(0, 30);
   if (!items.length) return res.json({ topics: null, labels: {} });
 
-  let topics, labels = {};
-  if (process.env.ANTHROPIC_API_KEY) {
-    try {
-      const numbered = items.map((item, i) => `${i}: ${item.title}`).join('\n');
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'x-api-key': process.env.ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: `Do two things with these numbered headlines:\n1. Group them into 5–7 broad topics for a news ticker. For each, write a punchy 6–10 word summary and list the headline indices that belong to it.\n2. Classify each headline with one or more of these labels (only where clearly applicable): politics, nyc, culture, media, science, tech.\n\nReturn ONLY JSON, no markdown:\n{"ticker":[{"summary":"...","indices":[0,2,5]}],"labels":{"0":["politics"],"3":["culture","nyc"]}}\n\nHeadlines:\n${numbered}`,
-          }],
-        }),
-      });
-      const data = await response.json();
-      const raw = data?.content?.[0]?.text?.trim().replace(/^```json\s*|\s*```$/g, '') || '';
-      const parsed = JSON.parse(raw);
-      // Map indices → article links for exact client-side matching
-      topics = (parsed.ticker || []).map(t => ({
-        summary: t.summary,
-        links: (t.indices || []).map(i => items[i]?.link).filter(Boolean),
-      }));
-      // Build labels map: link → [topic, ...]
-      for (const [idxStr, topicList] of Object.entries(parsed.labels || {})) {
-        const link = items[parseInt(idxStr)]?.link;
-        if (link) labels[link] = topicList;
-      }
-    } catch (err) {
-      console.error('Ticker Claude call failed:', err.message);
+  // Try one Claude call for both topic grouping+summaries and article classification
+  let topics, labels;
+  try {
+    const result = await analyzeWithClaude(items);
+    if (result) {
+      topics = result.topics;
+      labels = result.labels;
     }
+  } catch (e) {
+    console.warn('Claude analysis failed, falling back to keywords:', e.message);
   }
 
-  // Fallback: one entry per headline, linked to that exact article
-  if (!topics) {
-    topics = items.slice(0, 8).map(item => ({
-      summary: item.title.replace(/\s+/g, ' ').trim(),
-      links: [item.link],
-    }));
+  // Fallbacks
+  if (!topics) topics = buildTickerTopics(items);
+  if (!labels) {
+    labels = {};
+    items.forEach(item => {
+      const l = classifyLabels(item.title);
+      if (l.length) labels[item.link] = l;
+    });
   }
 
   tickerCache = { topics, labels };

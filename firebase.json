@@ -10,7 +10,10 @@
     {
       "source": ".",
       "codebase": "default",
-      "ignore": ["public", ".git", "firebase.json", ".firebaserc", "*.log"]
+      "ignore": ["public", ".git", "firebase.json", ".firebaserc", "*.log"],
+      "secretEnvironmentVariables": [
+        { "key": "ANTHROPIC_API_KEY" }
+      ]
     }
   ]
 }
