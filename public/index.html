@@ -372,19 +372,15 @@
     /* ── TICKER ── */
     #ticker-bar {
       display: flex;
-      align-items: stretch;
-      height: 2.25rem;
+      align-items: center;
+      min-height: 2.25rem;
       overflow: hidden;
-      /* border-bottom: 2px solid var(--accent); */
-      /* background: #111; */
+      background: var(--bg);
       color: var(--text);
       font-family: 'Gt Super';
       font-size: 0.78rem;
-      /* font-weight: 700; */
       letter-spacing: 0.07em;
-      /* text-transform: uppercase; */
     }
-    /* [data-theme="dark"] #ticker-bar { background: #000; } */
 
     #ticker-label {
       flex-shrink: 0;
@@ -400,6 +396,9 @@
       flex: 1;
       overflow: hidden;
       position: relative;
+      display: flex;
+      align-items: center;
+      min-height: 2.25rem;
     }
 
     #ticker-bar:hover #ticker-track { animation-play-state: paused; }
@@ -1009,11 +1008,16 @@
       #desktop-filter-row { display: none; }
       .filter-row::after { right: 0; }
       header { padding-right: 2rem; }
+      #ticker-bar { padding-right: 3rem; }
       #menu-btn {
         display: flex; align-items: center; background: none; border: none;
         color: var(--text); cursor: pointer; font-size: 1.4rem;
         padding: 0.25rem 0.4rem; line-height: 1; border-radius: 4px;
         transition: background 0.15s; flex-shrink: 0;
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1002;
       }
       #menu-btn:hover { background: var(--surface); }
     }
