@@ -511,7 +511,7 @@ app.get('/api/feeds', async (req, res) => {
 
 // Generate ticker topics and classify articles into filter labels in one Claude call
 app.get('/api/ticker', async (req, res) => {
-  if (tickerCache && Date.now() - tickerCacheTime < TICKER_TTL) {
+  if (tickerCache && Date.now() - tickerCacheTime < TICKER_TTL && tickerCacheTime >= (cacheTime || 0)) {
     return res.json({ topics: tickerCache.topics, labels: tickerCache.labels, cached: true });
   }
 
