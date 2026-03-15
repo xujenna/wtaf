@@ -522,16 +522,15 @@
       const hidden = getHiddenItems();
       const read = getReadItems();
       filtered = allItems.filter(item => {
+        if (tickerFilter) {
+          return tickerFilter.links?.includes(item.link) ?? false;
+        }
         if (hidden.has(item.link)) return false;
         if (read.has(item.link)) return false;
         if (isExcluded(item)) return false;
         if (activeSource && item.source !== activeSource) return false;
         if (activeTopic !== 'all') {
           if (!getItemTopics(item).includes(activeTopic)) return false;
-        }
-        if (tickerFilter) {
-          if (tickerFilter.links?.includes(item.link)) return true;
-          return false;
         }
         return true;
       });

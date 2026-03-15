@@ -708,6 +708,7 @@
       inset: 0;
       z-index: 1000;
       pointer-events: none;
+      overflow: hidden;
     }
     #lightbox.open {
       pointer-events: auto;
@@ -723,7 +724,7 @@
       opacity: 1;
     }
     #lightbox-box {
-      position: fixed;
+      position: absolute;
       top: 0;
       right: 0;
       bottom: 0;
