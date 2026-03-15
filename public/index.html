@@ -170,20 +170,18 @@
 
     .header-title-row {
       display: flex;
-      align-items: center;
-      gap: 0.75rem;
+      align-items: baseline;
+      gap: 0.5rem 0.75rem;
       flex-wrap: wrap;
     }
 
-    /* Wrap keeps subtitle OUTSIDE the 12rem box so it never inherits/squishes */
-    .site-title-group {
-      display: inline-flex;
-      align-items: center; /* stack vertically centered with title */
-      flex-wrap: wrap;
-      gap: 0 0.5rem;
+    .site-title-wrap {
+      display: inline-block;
     }
 
+    /* Title with toggle inline so it flows like a character */
     .site-title {
+      display: inline;
       font-size: 12rem;
       font-weight: 700;
       letter-spacing: -0.05em;
@@ -196,37 +194,18 @@
 
     .site-title span { color: var(--text); }
 
-    /* Toggle stacked above subtitle, aligned with title row */
-    .header-subtitle-stack {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
-      align-self: center;
-      margin-left: 0.75em;
-    }
-
-    /* Subtitle — not inside 12rem context */
-    #subtitle {
-      display: block;
-      font-size: 1.15rem;
-      line-height: 1.3;
-      color: var(--muted);
-      font-family: 'Verlag', sans-serif;
-      white-space: nowrap;
-      font-style: normal;
-      font-weight: 400;
-      text-align: right;
-    }
-
+    /* Toggle: inline like an asterisk, moves with title on any screen size */
     #theme-toggle {
+      display: inline-flex;
+      font-size: 1rem; /* don't inherit 12rem from .site-title */
+      vertical-align: top;
+      margin-left: 0.12em;
       background: none;
       border: none;
       border-radius: 50%;
-      padding: 0.5rem;
+      padding: 0.35rem;
       cursor: pointer;
       color: var(--text);
-      display: inline-flex;
       align-items: center;
       justify-content: center;
       transition: transform 0.2s, color 0.2s;
@@ -235,7 +214,19 @@
       transform: translateY(-2px);
       color: var(--accent);
     }
-    #theme-toggle svg { width: 1.15rem; height: 1.15rem; }
+    #theme-toggle svg { width: 1.35rem; height: 1.35rem; }
+
+    /* Subtitle: separate from toggle, flows inline and can wrap */
+    #subtitle {
+      display: inline;
+      font-size: 1.15rem;
+      line-height: 1.4;
+      color: var(--muted);
+      font-family: 'Verlag', sans-serif;
+      font-style: normal;
+      font-weight: 400;
+      vertical-align: baseline;
+    }
 
     /* ── TOPIC FILTER ── */
     /* ── TICKER ── */
@@ -869,13 +860,10 @@
   </div>
 </div>
   <div class="header-title-row">
-    <div class="site-title-group">
-      <div class="site-title"><span>Good news</span></div>
-      <div class="header-subtitle-stack">
-        <button id="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
-        <span id="subtitle">(sources for bad times)</span>
-      </div>
+    <div class="site-title-wrap">
+      <span class="site-title"><span>Good news</span><button id="theme-toggle" type="button" aria-label="Toggle dark mode"></button></span>
     </div>
+    <span id="subtitle">(sources for bad times)</span>
   </div>
 </header>
 
