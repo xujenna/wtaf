@@ -442,8 +442,6 @@
   function setTickerFilter(topic) {
     const isActive = tickerFilter?.summary === topic.summary;
     tickerFilter = isActive ? null : topic;
-    console.log('[ticker] links:', tickerFilter?.links);
-    console.log('[ticker] allItems links:', allItems.map(i => i.link));
     activeTopic = 'all';
     activeSource = '';
     viewRead = false;
@@ -525,9 +523,7 @@
       const read = getReadItems();
       filtered = allItems.filter(item => {
         if (tickerFilter) {
-          const match = tickerFilter.links?.includes(item.link) ?? false;
-          if (match) console.log('[ticker] matched:', item.link);
-          return match;
+          return tickerFilter.links?.includes(item.link) ?? false;
         }
         if (hidden.has(item.link)) return false;
         if (read.has(item.link)) return false;
