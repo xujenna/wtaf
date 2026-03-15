@@ -525,7 +525,9 @@
       const read = getReadItems();
       filtered = allItems.filter(item => {
         if (tickerFilter) {
-          return tickerFilter.links?.includes(item.link) ?? false;
+          const match = tickerFilter.links?.includes(item.link) ?? false;
+          if (match) console.log('[ticker] matched:', item.link);
+          return match;
         }
         if (hidden.has(item.link)) return false;
         if (read.has(item.link)) return false;
