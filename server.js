@@ -241,7 +241,7 @@ async function analyzeWithClaude(items) {
 
   const stream = anthropic.messages.stream({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 1024,
+    max_tokens: 2048,
     system: `You analyze a set of recent news articles. Return a JSON object with two fields:
 
 "labels": maps each article index (string) to an array of topic labels. Use only: tech, politics, nyc, culture, media, science.
@@ -255,7 +255,7 @@ async function analyzeWithClaude(items) {
 
 "topics": array of up to 10 story threads, each covering 2+ articles about the SAME specific story. For each thread:
   - "summary": a concise 3–6 word label synthesizing the theme (NOT a headline — e.g. "Trump Iran Policy Shifts", NOT "A Timeline of Trump's Confusing Iran War Timetables"). Must be clearly distinct from other topic summaries.
-  - "description": 1–2 sentence neutral summary of what this story is about, written for a reader who hasn't seen the articles yet.
+  - "description": 1–2 sentence TL;DR of the specific developments covered in these articles — what actually happened, who's involved, what's new. Be concrete and specific, not generic background.
   - "indices": array of article index numbers (integers) that belong to this thread
 
 Only group articles that genuinely cover the same event or ongoing story. Do NOT group articles just because they share a common word like "home", "shooting", "says", etc.
