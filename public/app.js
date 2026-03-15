@@ -442,6 +442,8 @@
   function setTickerFilter(topic) {
     const isActive = tickerFilter?.summary === topic.summary;
     tickerFilter = isActive ? null : topic;
+    console.log('[ticker] links:', tickerFilter?.links);
+    console.log('[ticker] allItems links:', allItems.map(i => i.link));
     activeTopic = 'all';
     activeSource = '';
     viewRead = false;
